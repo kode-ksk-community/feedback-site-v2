@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal Activation - Nexus Enterprise</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --bg-main: #f8fafc; /* Very light, clean gray background */
+            --card-bg: #ffffff; /* Pure white card */
+            --primary: #0f172a; /* Corporate navy/black */
+            --accent: #2563eb; /* Professional blue */
+            --accent-glow: rgba(37, 99, 235, 0.15);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            max-width: 460px;
+            width: 100%;
+            padding: 40px 30px;
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .brand-logo {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--primary);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .brand-logo i {
+            color: var(--accent);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .custom-select, .custom-input {
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .custom-select:focus, .custom-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            outline: none;
+        }
+
+        .custom-select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 16px 12px;
+            padding-right: 40px;
+        }
+
+        .pin-input {
+            letter-spacing: 12px;
+            font-size: 1.25rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .pin-input::placeholder {
+            letter-spacing: normal;
+            font-weight: 400;
+            color: #cbd5e1;
+        }
+
+        /* Security Box */
+        .security-box {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .security-box i {
+            color: var(--success);
+            font-size: 1.2rem;
+            margin-top: 2px;
+        }
+
+        .security-text h6 {
+            margin: 0 0 4px 0;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .security-text p {
+            margin: 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .btn-submit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background: #000000;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .btn-submit:disabled {
+            background: #cbd5e1;
+            color: #f8fafc;
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Success View */
+        #successView {
+            display: none;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .success-icon {
+            font-size: 4.5rem;
+            color: var(--success);
+            margin-bottom: 15px;
+        }
+
+        .device-id-badge {
+            display: inline-block;
+            background: #e2e8f0;
+            color: var(--text-muted);
+            font-family: monospace;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        
+        <div id="loginFormArea">
+            <div class="brand-header">
+                <div class="brand-logo">
+                    <i class="bi bi-display"></i> NEXUS
+                </div>
+                <p class="text-muted small mb-0 mt-2">Terminal / Counter Registration</p>
+            </div>
+
+            <form id="counterLoginForm">
+                
+                <!-- Security Notice -->
+                <div class="security-box">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <div class="security-text">
+                        <h6>Kiosk Security Enabled</h6>
+                        <p>This terminal will be hardware-locked. Feedback URLs generated here cannot be copied or used on personal devices.</p>
+                    </div>
+                </div>
+
+                <!-- Branch Selection -->
+                <div class="mb-3">
+                    <label for="branchSelect" class="form-label">Location / Branch</label>
+                    <select class="custom-select" id="branchSelect" required>
+                        <option value="" selected disabled>Select store branch...</option>
+                        <option value="hq">Downtown HQ</option>
+                        <option value="north">Northside Mall</option>
+                        <option value="west">West End Plaza</option>
+                        <option value="south">Southgate Tech Hub</option>
+                    </select>
+                </div>
+
+                <!-- Counter Selection -->
+                <div class="mb-4">
+                    <label for="counterSelect" class="form-label">Assign to Counter</label>
+                    <select class="custom-select" id="counterSelect" required disabled>
+                        <option value="" selected disabled>Select branch first...</option>
+                        <option value="Counter 01">Counter 01 (Sales)</option>
+                        <option value="Counter 02">Counter 02 (Sales)</option>
+                        <option value="Counter 03">Counter 03 (Repair)</option>
+                        <option value="Counter 04">Counter 04 (Pickup)</option>
+                    </select>
+                </div>
+
+                <!-- Supervisor PIN Entry -->
+                <div class="mb-4">
+                    <label for="supervisorPin" class="form-label">Supervisor / Admin PIN</label>
+                    <div class="position-relative">
+                        <input type="password" class="custom-input pin-input" id="supervisorPin" maxlength="4" placeholder="••••" inputmode="numeric" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn w-100 btn-submit" id="submitBtn" disabled>
+                    Lock Device to Counter
+                </button>
+            </form>
+        </div>
+
+        <!-- Success Animation View -->
+        <div id="successView">
+            <i class="bi bi-shield-check success-icon"></i>
+            <h3 class="fw-bold" style="color: var(--primary);">Terminal Secured</h3>
+            <p class="text-muted mb-2">Device is now locked to:</p>
+            <h4 class="fw-bold text-dark mb-4" id="displayCounterName">Counter 00</h4>
+            
+            <div class="device-id-badge">Device ID: NX-884-XJ9</div>
+            
+            <p class="text-muted small mb-0">System will switch to idle mode shortly...</p>
+        </div>
+
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            
+            // Enable Counter select only after Branch is chosen
+            $('#branchSelect').on('change', function() {
+            if($(this).val()) {
+                $('#counterSelect').prop('disabled', false);
+                $('#counterSelect option:first').text('Select a counter...');
+            }
+            });
+
+            // Validate form to enable submit button
+            function validateForm() {
+            const branch = $('#branchSelect').val();
+            const counter = $('#counterSelect').val();
+            const pin = $('#supervisorPin').val();
+
+            if (branch && counter && pin.length === 4) {
+                $('#submitBtn').prop('disabled', false);
+            } else {
+                $('#submitBtn').prop('disabled', true);
+            }
+            }
+
+            // Check validation on any input change
+            $('#branchSelect, #counterSelect, #supervisorPin').on('change input', validateForm);
+
+            // Handle Form Submission
+            $('#counterLoginForm').on('submit', function(e) {
+            e.preventDefault();
+
+            const btn = $('#submitBtn');
+            const selectedCounterName = $('#counterSelect option:selected').text();
+            
+            // Loading State
+            btn.prop('disabled', true).html(
+                '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Securing Terminal...'
+            );
+
+            // Simulate Server Authentication & Hardware Binding
+            setTimeout(function() {
+                // Redirect to staff_login.html
+                window.location.href = 'waiting.html';
+            }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>

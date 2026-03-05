@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Terminal Standby - Nexus Enterprise</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --primary: #0f172a;
+            --primary-light: #334155;
+            --accent: #2563eb;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Prevent scrolling for Kiosk Mode */
+            user-select: none;
+        }
+
+        .kiosk-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Top Bar */
+        .kiosk-header {
+            background: var(--card-bg);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            z-index: 10;
+        }
+
+        .brand-logo {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--primary);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo i {
+            color: var(--accent);
+        }
+
+        .terminal-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .device-id {
+            font-family: monospace;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        .status-badge {
+            background: #fef9c3;
+            color: #854d0e;
+            border: 1px solid #fde047;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .qr-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.05);
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle background glow for the QR code */
+        .qr-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(37,99,235,0.05) 0%, rgba(255,255,255,0) 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .qr-card-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .counter-name {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 5px;
+            letter-spacing: -1px;
+        }
+
+        .qr-box {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            border: 2px dashed #cbd5e1;
+            display: inline-block;
+            margin: 30px 0;
+            transition: all 0.3s ease;
+        }
+
+        .qr-box img {
+            width: 220px;
+            height: 220px;
+            display: block;
+        }
+
+        .scanning-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        /* Simulated Success State */
+        #successOverlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--card-bg);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 24px;
+        }
+
+        .success-icon {
+            font-size: 5rem;
+            color: #10b981;
+            margin-bottom: 20px;
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Developer Simulator Button (Bottom Right) */
+        .dev-sim-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: opacity 0.2s;
+        }
+        .dev-sim-btn:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="kiosk-wrapper">
+        <!-- Persistent Header -->
+        <header class="kiosk-header">
+            <div class="brand-logo">
+                <i class="bi bi-display"></i> NEXUS
+            </div>
+            
+            <div class="terminal-info">
+                <span class="device-id">NX-884-XJ9</span>
+                <div class="status-badge" id="headerStatus">
+                    <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true" style="width: 12px; height: 12px;"></span>
+                    Awaiting Agent Login
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <div class="qr-card" id="qrCard">
+                <div class="qr-card-content">
+                    
+                    <h1 class="counter-name">Counter 02</h1>
+                    <p class="text-muted fs-5 mb-2">Terminal Secured & Ready</p>
+                    
+                    <div class="qr-box" id="qrBoxContainer">
+                        <!-- Dynamic QR Code generated pointing to the Staff Login URL for this counter -->
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://feedback-template.netlify.app/staff_login.html" alt="Staff Check-in QR">
+                    </div>
+                    <div>
+                        <a class="btn btn-primary" href="customer_feedback.html">This Just Template so not working yet Click to Customer Feedback page</a>
+                    </div>
+                    <p class="text-muted fs-5 px-3">
+                        Please scan this code using your <br><strong class="text-dark">Employee App</strong> to begin your shift.
+                    </p>
+
+                    <div class="scanning-indicator">
+                        <i class="bi bi-broadcast"></i> Listening for scan...
+                    </div>
+                </div>
+
+                <!-- Hidden Success Overlay (Triggered by WebSocket when staff logs in on phone) -->
+                <div id="successOverlay">
+                    <i class="bi bi-person-check-fill success-icon"></i>
+                    <h2 class="fw-bold mb-2">Agent Verified</h2>
+                    <p class="text-muted fs-5 mb-0" id="agentNameDisplay">Welcome, Alex D.</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Simulator Tool for Development -->
+    <button class="dev-sim-btn" onclick="simulateStaffScan()">Simulate Staff Scan</button>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <script>
+        // Simulate what happens when the server sends a WebSocket event 
+        // indicating the staff member successfully logged in on their phone.
+        function simulateStaffScan() {
+            // Visual feedback on the QR Box
+            $('#qrBoxContainer').css({
+                'border-color': '#10b981',
+                'background': '#ecfdf5',
+                'transform': 'scale(1.05)'
+            });
+
+            setTimeout(() => {
+                // Show Success Overlay inside the card
+                $('#successOverlay').css('display', 'flex');
+                
+                // Update top header status
+                $('#headerStatus')
+                    .removeClass('status-badge')
+                    .css({
+                        'background': '#dcfce7',
+                        'color': '#166534',
+                        'border': '1px solid #86efac',
+                        'padding': '8px 16px',
+                        'border-radius': '50px',
+                        'font-weight': '600',
+                        'font-size': '0.9rem',
+                        'display': 'flex',
+                        'align-items': 'center',
+                        'gap': '8px'
+                    })
+                    .html('<i class="bi bi-check-circle-fill"></i> Active: Alex D.');
+
+                // Simulate redirect to the Customer Idle/Welcome screen after 2.5 seconds
+                setTimeout(() => {
+                    // window.location.href = '/customer-idle-screen';
+                    console.log("Redirecting to Customer Welcome Screen...");
+                }, 2500);
+
+            }, 600);
+        }
+
+        $(document).ready(function() {
+            // In a real application, you would initialize your WebSocket connection here:
+            // 
+            // const socket = new WebSocket('wss://api.nexus.com/terminal/NX-884-XJ9');
+            // socket.onmessage = function(event) {
+            //     const data = JSON.parse(event.data);
+            //     if(data.type === 'STAFF_LOGIN_SUCCESS') {
+            //         $('#agentNameDisplay').text('Welcome, ' + data.agent_name);
+            //         simulateStaffScan(); // Trigger the UI update
+            //     }
+            // };
+        });
+    </script>
+</body>
+</html>
