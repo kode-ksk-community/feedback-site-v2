@@ -21,6 +21,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { route } from 'ziggy-js';
 import { cn } from '@/lib/utils';
+import FlashMessage from '@/components/notifications/FlashMessage';
+import { Toaster as HotToast } from 'react-hot-toast';
 
 interface Props {
     branches: { id: number; name: string }[];
@@ -36,7 +38,6 @@ export default function ActivateCounter({ branches, counters }: Props) {
         pin: '',
     });
 
-    // Performance: Filter counters locally to avoid server round-trips
     const filteredCounters = useMemo(() => {
         if (!selectedBranchId) return [];
         return counters.filter(
@@ -44,7 +45,6 @@ export default function ActivateCounter({ branches, counters }: Props) {
         );
     }, [selectedBranchId, counters]);
 
-    // Navigation Handlers
     const handleBranchChange = (id: string) => {
         setSelectedBranchId(id);
         setData('counter_id', '');
@@ -56,7 +56,6 @@ export default function ActivateCounter({ branches, counters }: Props) {
         setStep(3);
     };
 
-    // Secure Submit Logic
     const handleSubmit = useCallback(
         (e?: React.FormEvent) => {
             e?.preventDefault();
@@ -70,35 +69,38 @@ export default function ActivateCounter({ branches, counters }: Props) {
         [data, processing, post, reset],
     );
 
-    // Latency Optimization: Auto-submit on 6th digit
     useEffect(() => {
         if (data.pin.length === 6) handleSubmit();
     }, [data.pin, handleSubmit]);
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-[#020617] p-6 font-sans selection:bg-blue-500/30">
+        <div className="flex min-h-screen items-center justify-center bg-background p-6 font-sans selection:bg-primary/30">
             <Head title="System Provisioning" />
+
+            <HotToast position="bottom-right" reverseOrder={false} />
+            <FlashMessage />
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="z-10 w-full max-w-[480px]"
             >
-                <Card className="overflow-hidden border-slate-800/50 bg-slate-900/40 shadow-[0_0_50px_-12px_rgba(30,58,138,0.5)] backdrop-blur-3xl">
-                    <div className="animate-gradient-x h-1 bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-600" />
+                <Card className="overflow-hidden border-border bg-card shadow-2xl backdrop-blur-3xl">
+                    {/* Animated Top Bar using Primary Color */}
+                    <div className="animate-gradient-x h-1 bg-gradient-to-r from-primary via-primary/50 to-primary" />
 
                     <CardContent className="p-10">
                         <header className="mb-10 text-center">
                             <motion.div
                                 layoutId="icon-box"
-                                className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-500/20 bg-blue-600/10"
+                                className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10"
                             >
-                                <ShieldCheck className="h-8 w-8 text-blue-500" />
+                                <ShieldCheck className="h-8 w-8 text-primary" />
                             </motion.div>
-                            <h1 className="text-3xl font-bold tracking-tight text-white">
+                            <h1 className="text-3xl font-black tracking-tight text-foreground uppercase italic">
                                 Activate Terminal
                             </h1>
-                            <p className="mt-2 text-xs font-semibold tracking-[0.2em] text-slate-500 uppercase">
+                            <p className="mt-2 text-[10px] font-bold tracking-[0.3em] text-muted-foreground uppercase italic">
                                 Secure Node Provisioning
                             </p>
                         </header>
@@ -106,18 +108,18 @@ export default function ActivateCounter({ branches, counters }: Props) {
                         <div className="space-y-8">
                             {/* Branch Selection */}
                             <div className="space-y-3">
-                                <Label className="ml-1 text-[10px] font-bold text-slate-400 uppercase">
+                                <Label className="ml-1 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                                     Terminal Location
                                 </Label>
                                 <Select
                                     value={selectedBranchId}
                                     onValueChange={handleBranchChange}
                                 >
-                                    <SelectTrigger className="h-14 border-slate-800 bg-slate-950/50 text-white focus:ring-blue-500/50">
-                                        <Landmark className="mr-3 h-4 w-4 text-blue-500" />
+                                    <SelectTrigger className="h-14 w-full border-input bg-muted/50 text-foreground focus:ring-primary/50 rounded-xl">
+                                        <Landmark className="mr-3 h-4 w-4 text-primary" />
                                         <SelectValue placeholder="Identify Branch..." />
                                     </SelectTrigger>
-                                    <SelectContent className="border-slate-800 bg-slate-900 text-white">
+                                    <SelectContent className="border-border bg-popover text-popover-foreground">
                                         {branches.map((b) => (
                                             <SelectItem
                                                 key={b.id}
@@ -138,18 +140,18 @@ export default function ActivateCounter({ branches, counters }: Props) {
                                         animate={{ opacity: 1, height: 'auto' }}
                                         className="space-y-3"
                                     >
-                                        <Label className="ml-1 text-[10px] font-bold text-slate-400 uppercase">
+                                        <Label className="ml-1 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                                             Terminal ID
                                         </Label>
                                         <Select
                                             value={data.counter_id}
                                             onValueChange={handleCounterChange}
                                         >
-                                            <SelectTrigger className="h-14 border-slate-800 bg-slate-950/50 text-white focus:ring-indigo-500/50">
-                                                <MonitorSmartphone className="mr-3 h-4 w-4 text-indigo-500" />
+                                            <SelectTrigger className="h-14 w-full border-input bg-muted/50 text-foreground focus:ring-primary/50 rounded-xl">
+                                                <MonitorSmartphone className="mr-3 h-4 w-4 text-primary" />
                                                 <SelectValue placeholder="Select Counter..." />
                                             </SelectTrigger>
-                                            <SelectContent className="border-slate-800 bg-slate-900 text-white">
+                                            <SelectContent className="border-border bg-popover text-popover-foreground">
                                                 {filteredCounters.map((c) => (
                                                     <SelectItem
                                                         key={c.id}
@@ -161,7 +163,7 @@ export default function ActivateCounter({ branches, counters }: Props) {
                                             </SelectContent>
                                         </Select>
                                         {errors.counter_id && (
-                                            <div className="mt-2 flex items-center gap-2 rounded-lg border border-red-400/20 bg-red-400/10 p-3 text-xs text-red-400">
+                                            <div className="mt-2 flex items-center gap-2 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
                                                 <AlertCircle className="h-4 w-4" />
                                                 {errors.counter_id}
                                             </div>
@@ -176,10 +178,10 @@ export default function ActivateCounter({ branches, counters }: Props) {
                                     onSubmit={handleSubmit}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="space-y-6 border-t border-slate-800/50 pt-6"
+                                    className="space-y-6 border-t border-border pt-6"
                                 >
                                     <div className="space-y-4">
-                                        <Label className="block text-center text-[10px] font-bold text-slate-400 uppercase">
+                                        <Label className="block text-center text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
                                             Authorization PIN
                                         </Label>
                                         <Input
@@ -191,27 +193,22 @@ export default function ActivateCounter({ branches, counters }: Props) {
                                             onChange={(e) =>
                                                 setData(
                                                     'pin',
-                                                    e.target.value.replace(
-                                                        /\D/g,
-                                                        '',
-                                                    ),
+                                                    e.target.value.replace(/\D/g, ''),
                                                 )
                                             }
-                                            className="h-20 border-slate-800 bg-black/40 text-center font-mono text-4xl tracking-[0.5em] text-blue-500 shadow-inner transition-all focus:border-blue-500"
+                                            className="h-24 border-input bg-muted/30 text-center font-mono text-5xl font-black tracking-[0.5em] text-primary shadow-inner transition-all focus:border-primary focus:ring-primary/20 rounded-2xl"
                                             placeholder="••••••"
                                         />
                                         {errors.pin && (
-                                            <p className="text-center text-xs font-medium text-red-400">
+                                            <p className="text-center text-xs font-bold text-destructive">
                                                 {errors.pin}
                                             </p>
                                         )}
                                     </div>
 
                                     <Button
-                                        disabled={
-                                            processing || data.pin.length < 6
-                                        }
-                                        className="h-16 w-full rounded-xl bg-blue-600 text-lg font-bold text-white shadow-xl shadow-blue-900/20 transition-all hover:bg-blue-500 active:scale-95"
+                                        disabled={processing || data.pin.length < 6}
+                                        className="h-16 w-full rounded-[2rem] bg-primary text-lg font-black uppercase tracking-widest text-primary-foreground shadow-xl shadow-primary/20 transition-all hover:bg-primary/90 active:scale-[0.98]"
                                     >
                                         {processing ? (
                                             <Loader2 className="h-6 w-6 animate-spin" />
@@ -226,11 +223,11 @@ export default function ActivateCounter({ branches, counters }: Props) {
                 </Card>
 
                 <footer className="mt-8 space-y-2 text-center">
-                    <p className="text-[10px] tracking-widest text-slate-600 uppercase">
+                    <p className="text-[10px] font-black tracking-[0.4em] text-muted-foreground uppercase opacity-50">
                         Authorized Access Only
                     </p>
-                    <div className="font-mono text-[9px] text-slate-800">
-                        HASH: {btoa(navigator.userAgent).slice(0, 16)}
+                    <div className="font-mono text-[9px] text-muted-foreground/30 uppercase">
+                        Node Hash: {btoa(navigator.userAgent).slice(0, 12)}
                     </div>
                 </footer>
             </motion.div>

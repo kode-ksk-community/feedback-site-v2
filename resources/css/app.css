@@ -1,7 +1,10 @@
 @import 'tailwindcss';
+
 @import 'tw-animate-css';
 
 @source '../views';
+
+@source '../js';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
@@ -58,111 +61,195 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+
+    /* This adds the xs: prefix at 480px */
+    --breakpoint-xs: 30rem;
+
+    
+    /* --- Core Surfaces --- */
+    --template-bg: #ffffff;           /* Pure white for maximum print clarity */
+    --template-sidebar-bg: #f8fafc;   /* Slate-50: Subtle separation, low ink usage */
+    
+    /* --- Text Hierarchy (Visual Latency Reduction) --- */
+    --template-name: #0f172a;         /* Slate-900: Highest contrast for the main ID */
+    --template-heading: #1e293b;      /* Slate-800: Strong section markers */
+    --template-subheading: #334155;   /* Slate-700: Job titles and roles */
+    --template-body: #475569;         /* Slate-600: Optimized for reading long blocks */
+    --template-meta: #64748b;         /* Slate-500: Dates, locations, and secondary info */
+    
+    /* --- Accents & Graphics --- */
+    --template-primary: #2563eb;      /* Professional Blue: Used for icons or thin borders */
+    --template-border: #e2e8f0;       /* Slate-200: Soft structural lines */
+    --template-bullet: #cbd5e1;       /* Slate-300: De-emphasized list markers */
+
+    /* --- Sizing (Performance-based spacing) --- */
+    --template-line-height: 1.6;      /* Increases "Scanning Speed" */
+    --template-section-gap: 2.5rem;   /* Prevents visual clutter */
 }
 
 :root {
-    /* Pure, clean light mode - Slate base */
-    --background: oklch(0.99 0.002 240);
-    --foreground: oklch(0.12 0.015 260);
+    /* Background and Neutrals (#EFEFEF from image) */
+    --background: #e2e2e2;
+    --foreground: #1F2D24;
+    --card: #FFFFFF;
+    --card-foreground: #1F2D24;
+    --popover: #FFFFFF;
+    --popover-foreground: #1F2D24;
+
+    /* Primary Green (Top Band) */
+    --primary: #3E7B5E;
+    --primary-foreground: #FFFFFF;
+
+    /* Secondary Orange (Middle-bottom Band) */
+    --secondary: #F2A25C;
+    --secondary-foreground: #1F2D24;
+
+    /* Accent / Destructive (Bottom Red-Orange Band) */
+    --accent: #EFEFEF;
+    --accent-foreground: #3E7B5E;
+    --destructive: #EB6338;
+    --destructive-foreground: #FFFFFF;
+
+    /* UI Elements */
+    --muted: #EFEFEF;
+    --muted-foreground: #607367;
+    --border: #DDE1E1;
+    --input: #DDE1E1;
+    --ring: #3E7B5E;
+
+    --label: black;
     
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.12 0.015 260);
+    /* Performance-optimized Chart Palette */
+    --chart-1: #3E7B5E; /* Green */
+    --chart-2: #F2A25C; /* Orange */
+    --chart-3: #EB6338; /* Red-Orange */
+    --chart-4: #A4BCAF; /* Muted Green */
+    --chart-5: #EFEFEF; /* Light Grey */
+
+    --radius: 0.625rem;
+
+    /* Sidebar logic */
+    --sidebar: #FFFFFF;
+    --sidebar-foreground: #1F2D24;
+    --sidebar-primary: #3E7B5E;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #EFEFEF;
+    --sidebar-accent-foreground: #3E7B5E;
+    --sidebar-border: #EFEFEF;
+    --sidebar-ring: #3E7B5E;
+
+
+        /* --- Core Surfaces --- */
+    --template-bg: #ffffff;           /* Pure white for maximum print clarity */
+    --template-sidebar-bg: #f8fafc;   /* Slate-50: Subtle separation, low ink usage */
     
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.12 0.015 260);
+    /* --- Text Hierarchy (Visual Latency Reduction) --- */
+    --template-name: #0f172a;         /* Slate-900: Highest contrast for the main ID */
+    --template-heading: #1e293b;      /* Slate-800: Strong section markers */
+    --template-subheading: #334155;   /* Slate-700: Job titles and roles */
+    --template-body: #475569;         /* Slate-600: Optimized for reading long blocks */
+    --template-meta: #64748b;         /* Slate-500: Dates, locations, and secondary info */
     
-    /* Modern Indigo-Deep Blue Primary */
-    --primary: oklch(0.35 0.12 260);
-    --primary-foreground: oklch(0.98 0.005 260);
-    
-    --secondary: oklch(0.94 0.01 260);
-    --secondary-foreground: oklch(0.25 0.04 260);
-    
-    --muted: oklch(0.95 0.005 260);
-    --muted-foreground: oklch(0.52 0.02 260);
-    
-    --accent: oklch(0.92 0.02 260);
-    --accent-foreground: oklch(0.25 0.04 260);
-    
-    --destructive: oklch(0.62 0.18 25);
-    --destructive-foreground: oklch(0.98 0.01 25);
-    
-    --border: oklch(0.91 0.01 260);
-    --input: oklch(0.91 0.01 260);
-    --ring: oklch(0.35 0.12 260 / 0.2);
-    
-    --chart-1: oklch(0.65 0.22 41);
-    --chart-2: oklch(0.60 0.12 185);
-    --chart-3: oklch(0.40 0.07 227);
-    --chart-4: oklch(0.83 0.19 84);
-    --chart-5: oklch(0.77 0.19 70);
-    
-    --radius: 0.75rem; /* Slightly more modern rounding */
-    
-    --sidebar: oklch(0.99 0.002 240);
-    --sidebar-foreground: oklch(0.25 0.04 260);
-    --sidebar-primary: oklch(0.35 0.12 260);
-    --sidebar-primary-foreground: oklch(0.98 0.005 260);
-    --sidebar-accent: oklch(0.94 0.01 260);
-    --sidebar-accent-foreground: oklch(0.25 0.04 260);
-    --sidebar-border: oklch(0.91 0.01 260);
-    --sidebar-ring: oklch(0.35 0.12 260 / 0.2);
+    /* --- Accents & Graphics --- */
+    --template-primary: #2563eb;      /* Professional Blue: Used for icons or thin borders */
+    --template-border: #e2e8f0;       /* Slate-200: Soft structural lines */
+    --template-bullet: #cbd5e1;       /* Slate-300: De-emphasized list markers */
+
+    /* --- Sizing (Performance-based spacing) --- */
+    --template-line-height: 1.6;      /* Increases "Scanning Speed" */
+    --template-section-gap: 2.5rem;   /* Prevents visual clutter */
 }
 
 .dark {
-    /* Deep Slate/Carbon dark mode */
-    --background: oklch(0.12 0.015 260);
-    --foreground: oklch(0.98 0.005 260);
-    
-    --card: oklch(0.16 0.018 260);
-    --card-foreground: oklch(0.98 0.005 260);
-    
-    --popover: oklch(0.14 0.015 260);
-    --popover-foreground: oklch(0.98 0.005 260);
-    
-    /* Vibrant Indigo for Dark mode */
-    --primary: oklch(0.65 0.15 260);
-    --primary-foreground: oklch(0.12 0.015 260);
-    
-    --secondary: oklch(0.22 0.02 260);
-    --secondary-foreground: oklch(0.98 0.005 260);
-    
-    --muted: oklch(0.22 0.02 260);
-    --muted-foreground: oklch(0.72 0.02 260);
-    
-    --accent: oklch(0.25 0.03 260);
-    --accent-foreground: oklch(0.98 0.005 260);
-    
-    --destructive: oklch(0.45 0.15 25);
-    --destructive-foreground: oklch(0.98 0.01 25);
-    
-    --border: oklch(0.25 0.02 260);
-    --input: oklch(0.25 0.02 260);
-    --ring: oklch(0.65 0.15 260 / 0.3);
-    
-    --chart-1: oklch(0.55 0.20 264);
-    --chart-2: oklch(0.72 0.15 162);
-    --chart-3: oklch(0.78 0.18 70);
-    --chart-4: oklch(0.65 0.25 304);
-    --chart-5: oklch(0.68 0.22 16);
-    
-    --sidebar: oklch(0.14 0.015 260);
-    --sidebar-foreground: oklch(0.98 0.005 260);
-    --sidebar-primary: oklch(0.65 0.15 260);
-    --sidebar-primary-foreground: oklch(0.12 0.015 260);
-    --sidebar-accent: oklch(0.22 0.02 260);
-    --sidebar-accent-foreground: oklch(0.98 0.005 260);
-    --sidebar-border: oklch(0.25 0.02 260);
-    --sidebar-ring: oklch(0.65 0.15 260 / 0.3);
+    --background: #0F1713;
+    --foreground: #EFEFEF;
+    --card: #16221C;
+    --card-foreground: #EFEFEF;
+    --popover: #16221C;
+    --popover-foreground: #EFEFEF;
+
+    --primary: #4A9371;
+    --primary-foreground: #FFFFFF;
+
+    --secondary: #D48B4A;
+    --secondary-foreground: #0F1713;
+
+    --muted: #1F2D24;
+    --muted-foreground: #8FA397;
+    --accent: #1F2D24;
+    --accent-foreground: #4A9371;
+
+    --destructive: #C54E2B;
+    --destructive-foreground: #FFFFFF;
+
+    --border: #1F2D24;
+    --input: #1F2D24;
+    --ring: #4A9371;
+
+    --chart-1: #4A9371;
+    --chart-2: #F2A25C;
+    --chart-3: #EB6338;
+    --chart-4: #2D4438;
+    --chart-5: #3E7B5E;
+
+    --sidebar: #0B120F;
+    --sidebar-foreground: #EFEFEF;
+    --sidebar-primary: #4A9371;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: #1F2D24;
+    --sidebar-accent-foreground: #EFEFEF;
+    --sidebar-border: #1F2D24;
+    --sidebar-ring: #4A9371;
 }
+
+
 
 @layer base {
     * {
-        @apply border-border outline-ring/50;
-        transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+        @apply border-border;
     }
 
     body {
-        @apply bg-background text-foreground antialiased;
+        @apply bg-background text-foreground;
     }
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  /* Reset layout for high-speed rendering */
+  html, body {
+    width: 210mm;
+    height: 297mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+
+  /* Hide UI elements while keeping the print target visible */
+  body * {
+    visibility: hidden;
+  }
+
+  #resume-template,
+  #resume-template * {
+    visibility: visible;
+  }
+
+  #resume-template {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+

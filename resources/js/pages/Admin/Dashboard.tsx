@@ -1,183 +1,289 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Star, Users, TrendingUp, Calendar, MessageSquare, Tag as TagIcon, Building2, MonitorSmartphone } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Star,
+    Users,
+    TrendingUp,
+    Tag as TagIcon,
+    Building2,
+    MonitorSmartphone,
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 
-export default function Dashboard({ stats, recentComments, recentTags, topServicers, branches, counters, servicers, filters }: any) {
-    
-    const updateFilter = (key: string, value: any) => {
-        const newFilters = { ...filters, [key]: value === "all" ? "" : value };
-        // Reset counter if branch changes
-        if (key === 'branch_id') newFilters.counter_id = "";
-        
-        router.get(window.location.pathname, newFilters, {
-            preserveState: true,
-            replace: true,
-            preserveScroll: true
-        });
-    };
+export default function Dashboard({
+    stats,
+    recentComments,
+    recentTags,
+    topServicers,
+    branches,
+    counters,
+    filters,
+}: any) {
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const start = () => setIsLoading(true);
+        const finish = () => {
+            setTimeout(() => setIsLoading(false), 150);
+        };
+
+        const unbindStart = router.on('start', start);
+        const unbindFinish = router.on('finish', finish);
+
+        return () => {
+            unbindStart();
+            unbindFinish();
+        };
+    }, []);
+
+    const updateFilter = useCallback(
+        (key: string, value: any) => {
+            const newFilters = {
+                ...filters,
+                [key]: value === 'all' ? '' : value,
+            };
+            if (key === 'branch_id') newFilters.counter_id = '';
+
+            router.get(window.location.pathname, newFilters, {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                only: ['stats', 'recentComments', 'recentTags', 'topServicers', 'counters', 'filters'],
+            });
+        },
+        [filters],
+    );
 
     return (
         <AppLayout>
             <Head title="Performance Dashboard" />
-            <div className="flex flex-1 flex-col gap-6 p-6 max-w-[1600px] mx-auto w-full bg-slate-50/50">
+            <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-6 p-6">
                 
-                {/* === FLEXIBLE FILTER BAR === */}
-                <Card className="border-none shadow-sm bg-white p-2 rounded-[1.5rem]">
+                {/* === FILTER BAR (Adaptive Surface) === */}
+                <Card className="rounded-[1.5rem] border-none p-2 shadow-sm bg-card text-card-foreground">
                     <div className="flex flex-wrap items-center gap-3">
-                        {/* Time Presets */}
-                        <div className="flex bg-slate-100 p-1 rounded-xl">
+                        {/* Preset Toggles */}
+                        <div className="flex rounded-xl bg-muted p-1">
                             {['daily', 'weekly', 'monthly', 'yearly'].map((p) => (
-                                <Button 
-                                    key={p} size="sm" variant="ghost"
+                                <Button
+                                    key={p}
+                                    size="sm"
+                                    variant="ghost"
                                     onClick={() => updateFilter('preset', p)}
-                                    className={`px-4 text-[10px] font-black uppercase rounded-lg ${filters.preset === p ? 'bg-white shadow-sm' : 'text-slate-500'}`}
+                                    disabled={isLoading}
+                                    className={`rounded-lg px-4 text-[10px] font-black uppercase transition-all ${
+                                        filters.preset === p 
+                                        ? 'bg-background text-primary shadow-sm' 
+                                        : 'text-muted-foreground hover:text-foreground'
+                                    }`}
                                 >
                                     {p}
                                 </Button>
                             ))}
                         </div>
 
-                        {/* Date Range */}
-                        <div className="flex items-center gap-2 border-r pr-3 border-slate-200">
-                            <Input type="date" value={filters.date_start || ''} onChange={(e) => updateFilter('date_start', e.target.value)} className="w-32 h-9 text-xs border-none bg-slate-50" />
-                            <span className="text-slate-400 text-xs">→</span>
-                            <Input type="date" value={filters.date_end || ''} onChange={(e) => updateFilter('date_end', e.target.value)} className="w-32 h-9 text-xs border-none bg-slate-50" />
+                        {/* Date Inputs */}
+                        <div className="flex items-center gap-2 border-r border-border pr-3">
+                            <Input
+                                type="date"
+                                disabled={isLoading}
+                                value={filters.date_start || ''}
+                                onChange={(e) => updateFilter('date_start', e.target.value)}
+                                className="h-9 w-32 border-none bg-transparent text-xs focus-visible:ring-ring"
+                            />
+                            <span className="text-xs text-muted-foreground">→</span>
+                            <Input
+                                type="date"
+                                disabled={isLoading}
+                                value={filters.date_end || ''}
+                                onChange={(e) => updateFilter('date_end', e.target.value)}
+                                className="h-9 w-32 border-none bg-transparent text-xs focus-visible:ring-ring"
+                            />
                         </div>
 
                         {/* Dropdowns */}
-                        <Select value={filters.branch_id || "all"} onValueChange={(v) => updateFilter('branch_id', v)}>
-                            <SelectTrigger className="w-[160px] h-9 border-none bg-slate-50 text-xs font-bold">
-                                <Building2 className="w-3 h-3 mr-2" /> <SelectValue placeholder="Branch" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Branches</SelectItem>
-                                {branches.map((b: any) => <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
+                        <div className="flex gap-2">
+                            <Select
+                                disabled={isLoading}
+                                value={filters.branch_id || 'all'}
+                                onValueChange={(v) => updateFilter('branch_id', v)}
+                            >
+                                <SelectTrigger className="h-9 w-[160px] border-none bg-transparent text-xs font-bold focus:ring-ring">
+                                    <Building2 className="mr-2 h-3 w-3 text-muted-foreground" />
+                                    <SelectValue placeholder="Branch" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Branches</SelectItem>
+                                    {branches.map((b: any) => (
+                                        <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
 
-                        <Select value={filters.counter_id || "all"} onValueChange={(v) => updateFilter('counter_id', v)}>
-                            <SelectTrigger className="w-[160px] h-9 border-none bg-slate-50 text-xs font-bold">
-                                <MonitorSmartphone className="w-3 h-3 mr-2" /> <SelectValue placeholder="Counter" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Counters</SelectItem>
-                                {counters.map((c: any) => <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
+                            <Select
+                                disabled={isLoading || !filters.branch_id}
+                                value={filters.counter_id || 'all'}
+                                onValueChange={(v) => updateFilter('counter_id', v)}
+                            >
+                                <SelectTrigger className="h-9 w-[160px] border-none bg-transparent text-xs font-bold focus:ring-ring">
+                                    <MonitorSmartphone className="mr-2 h-3 w-3 text-muted-foreground" />
+                                    <SelectValue placeholder="Counter" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Counters</SelectItem>
+                                    {counters.map((c: any) => (
+                                        <SelectItem key={c.id} value={c.id.toString()}>{c.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                        <Button onClick={() => router.get(window.location.pathname)} variant="ghost" className="ml-auto text-xs text-slate-400">Clear</Button>
+                        <Button
+                            onClick={() => router.get(window.location.pathname)}
+                            variant="ghost"
+                            className="ml-auto text-xs text-muted-foreground hover:text-foreground hover:bg-transparent"
+                        >
+                            Clear Filters
+                        </Button>
                     </div>
                 </Card>
 
-                {/* === METRICS === */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <MetricCard title="Total Feedback" value={stats.totalFeedbacks} icon={<TrendingUp className="text-emerald-500" />} />
-                    <MetricCard title="Average Rating" value={stats.avgRating} icon={<Star className="text-amber-500 fill-current" />} suffix="/ 5.0" />
-                    <MetricCard title="Staff Active" value={stats.activeServicers} icon={<Users className="text-blue-500" />} />
-                </div>
+                <div className={`transition-opacity duration-200 ${isLoading ? 'pointer-events-none opacity-50' : 'opacity-100'}`}>
+                    
+                    {/* === TOP METRICS === */}
+                    <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
+                        <MetricCard
+                            title="Total Feedback"
+                            value={stats.totalFeedbacks}
+                            icon={<TrendingUp className="text-primary" />}
+                        />
+                        <MetricCard
+                            title="Average Rating"
+                            value={stats.avgRating}
+                            icon={<Star className="fill-current text-secondary" />}
+                            suffix="/ 5.0"
+                        />
+                        <MetricCard
+                            title="Staff Active"
+                            value={stats.activeServicers}
+                            icon={<Users className="text-primary" />}
+                        />
+                    </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* === SERVICER PERFORMANCE === */}
-                    <Card className="lg:col-span-2 border-none shadow-sm rounded-[2rem]">
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle className="text-sm font-black uppercase">Servicer Leaderboard</CardTitle>
-                            <Badge variant="outline">Sorted by Rating</Badge>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {topServicers.map((s: any) => (
-                                <div key={s.id} className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-2xl transition-colors group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center font-black text-slate-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                            {s.name.substring(0,2).toUpperCase()}
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-slate-900">{s.name}</h4>
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase">{s.feedbacks_count} Sessions Handled</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-6">
-                                        <div className="text-right">
-                                            <div className="flex items-center gap-1 justify-end">
-                                                <Star className="w-4 h-4 text-amber-500 fill-current" />
-                                                <span className="font-black text-xl">{Number(s.feedbacks_avg_rating || 0).toFixed(1)}</span>
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                        {/* === LEADERBOARD === */}
+                        <Card className="rounded-[2rem] border-none shadow-sm lg:col-span-2 bg-card text-card-foreground">
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <CardTitle className="text-sm font-black tracking-wider uppercase">Servicer Leaderboard</CardTitle>
+                                <Badge variant="secondary" className="bg-muted text-muted-foreground border-none">
+                                    High Performance
+                                </Badge>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                {topServicers.map((s: any) => (
+                                    <div key={s.id} className="group flex items-center justify-between rounded-2xl p-4 transition-colors hover:bg-muted/30">
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted font-black text-muted-foreground transition-all group-hover:bg-primary group-hover:text-primary-foreground">
+                                                {s.name.substring(0, 2).toUpperCase()}
                                             </div>
-                                            <div className="w-32 h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
-                                                <motion.div 
+                                            <div>
+                                                <h4 className="font-bold text-foreground">{s.name}</h4>
+                                                <p className="text-[10px] font-bold text-muted-foreground uppercase">{s.feedbacks_count} Sessions</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="mb-1 flex items-center justify-end gap-1">
+                                                <Star className="h-4 w-4 fill-current text-secondary" />
+                                                <span className="text-lg font-black text-foreground">{Number(s.feedbacks_avg_rating || 0).toFixed(1)}</span>
+                                            </div>
+                                            <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
+                                                <motion.div
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${(s.feedbacks_avg_rating / 5) * 100}%` }}
-                                                    className="h-full bg-emerald-500"
+                                                    className="h-full rounded-full bg-primary"
                                                 />
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </CardContent>
-                    </Card>
+                                ))}
+                            </CardContent>
+                        </Card>
 
-                    {/* === TRENDING TAGS === */}
-                    <Card className="border-none shadow-sm rounded-[2rem]">
+                        {/* === TAGS === */}
+                        <Card className="rounded-[2rem] border-none shadow-sm bg-card text-card-foreground">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-sm font-black tracking-wider uppercase">
+                                    <TagIcon className="h-4 w-4 text-muted-foreground" /> Top Tags
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                {recentTags?.map((tag: any) => (
+                                    <div key={tag.id} className="flex items-center justify-between rounded-xl p-3 transition-colors hover:bg-muted/30">
+                                        <span className="text-xs font-bold text-foreground/80">#{tag.name}</span>
+                                        <Badge className="bg-primary text-primary-foreground border-none font-black">{tag.feedbacks_count}</Badge>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* === COMMENTS === */}
+                    <Card className="mt-6 rounded-[2rem] border-none shadow-sm bg-card text-card-foreground">
                         <CardHeader>
-                            <CardTitle className="text-sm font-black uppercase flex items-center gap-2">
-                                <TagIcon className="w-4 h-4" /> Top Tags
-                            </CardTitle>
+                            <CardTitle className="text-sm font-black tracking-wider uppercase text-foreground">Latest Comments</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-2">
-                            {recentTags?.map((tag: any) => (
-                                <div key={tag.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                                    <span className="text-xs font-bold text-slate-700">#{tag.name}</span>
-                                    <Badge className="bg-white text-slate-900 shadow-sm border-none font-black">{tag.feedbacks_count}</Badge>
-                                </div>
-                            ))}
+                        <CardContent>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                {recentComments.map((c: any) => (
+                                    <div key={c.id} className="relative rounded-2xl border border-border p-4 shadow-sm bg-background/50 hover:bg-background transition-colors">
+                                        <div className="mb-2 flex items-start justify-between">
+                                            <Badge className="border-none bg-secondary/15 text-secondary hover:bg-secondary/25 font-bold">
+                                                {c.rating} ★
+                                            </Badge>
+                                            <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                                {new Date(c.created_at).toLocaleDateString()}
+                                            </span>
+                                        </div>
+                                        <p className="text-sm leading-relaxed text-foreground/90 italic">"{c.comment}"</p>
+                                        <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+                                            <span className="text-[10px] font-bold text-muted-foreground uppercase">Served by</span>
+                                            <span className="text-xs font-black text-foreground">{c.user?.name || 'Unknown'}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </CardContent>
                     </Card>
                 </div>
-
-                {/* === RECENT COMMENTS === */}
-                <Card className="border-none shadow-sm rounded-[2rem]">
-                    <CardHeader>
-                        <CardTitle className="text-sm font-black uppercase">Detailed Comments</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {recentComments.map((c: any) => (
-                                <div key={c.id} className="p-4 border border-slate-100 rounded-2xl relative">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-50 border-none">
-                                            {c.rating} ★
-                                        </Badge>
-                                        <span className="text-[9px] font-black text-slate-300 uppercase">{c.submitted_at}</span>
-                                    </div>
-                                    <p className="text-sm text-slate-600 italic">"{c.comment || 'No comment provided'}"</p>
-                                    <div className="mt-3 pt-3 border-t border-slate-50 text-[10px] font-bold text-slate-400 uppercase">
-                                        Served by: <span className="text-slate-900">{c.user?.name || 'Unknown'}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
         </AppLayout>
     );
 }
 
-function MetricCard({ title, value, icon, suffix = "" }: any) {
+function MetricCard({ title, value, icon, suffix = '' }: any) {
     return (
-        <Card className="border-none shadow-sm rounded-[2rem]">
-            <CardContent className="p-6 flex items-center justify-between">
+        <Card className="rounded-[2rem] border-none shadow-sm bg-card text-card-foreground">
+            <CardContent className="flex items-center justify-between p-6">
                 <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
-                    <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{value}{suffix}</h3>
+                    <p className="mb-1 text-[10px] font-black tracking-widest text-muted-foreground uppercase">{title}</p>
+                    <h3 className="text-4xl font-black tracking-tighter text-foreground">
+                        {value}
+                        <span className="ml-1 text-xl text-muted-foreground">{suffix}</span>
+                    </h3>
                 </div>
-                <div className="p-4 bg-slate-50 rounded-2xl">{icon}</div>
+                <div className="rounded-2xl bg-muted p-4">{icon}</div>
             </CardContent>
         </Card>
     );

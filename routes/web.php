@@ -31,14 +31,6 @@ Route::post('/feedback/{counter}', [FeedbackController::class, 'store'])
     ->name('feedback.store');
 
 
-// Route::inertia('/', 'client/TerminalActivation')->name('home');
-// Route::get('/' , [TerminalController::class, 'index'])->name('home');
-// Route::post('/terminal/lock', [TerminalController::class, 'lock'])->name('terminal.lock');
-// Route::get('/waiting', [TerminalController::class, 'waiting'])->name('waiting');
-// Route::inertia('/staff', 'client/StaffLogin')->name('staff.login');
-// Route::inertia('/feedback', 'client/Feedback')->name('feedback');
-
-
 Route::prefix('servicer')->group(function () {
     Route::get('/start', [ServicerController::class, 'start'])
         ->name('servicer.start');
@@ -51,7 +43,8 @@ Route::prefix('servicer')->group(function () {
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    // Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::resource('dashboard', DashboardController::class)->names('dashboard');
 
     // ========================================================
     //              Administrator
@@ -62,7 +55,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'auth',
         ])
         ->group(function () {
-            Route::resource('dashboard', DashboardController::class)->names('dashboard');
+            // Route::resource('dashboard', DashboardController::class)->names('dashboard');
             Route::resource('branches', BranchController::class)->names('branches');
             Route::resource('counters', CounterController::class)->names('counters');
             Route::resource('tags', TagController::class)->names('tags');

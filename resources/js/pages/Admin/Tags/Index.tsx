@@ -28,12 +28,13 @@ interface Props {
     tags: Tag[];
 }
 
+// LEVELS now use semantic classes from your app.css
 const LEVELS = [
-    { value: 1, label: 'Terrible', emoji: '😠', activeColor: 'bg-red-500/10 text-red-600 border-red-500/50' },
-    { value: 2, label: 'Bad', emoji: '☹️', activeColor: 'bg-orange-500/10 text-orange-600 border-orange-500/50' },
-    { value: 3, label: 'Okay', emoji: '😐', activeColor: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/50' },
-    { value: 4, label: 'Good', emoji: '😊', activeColor: 'bg-lime-500/10 text-lime-600 border-lime-500/50' },
-    { value: 5, label: 'Great', emoji: '🤩', activeColor: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/50' },
+    { value: 1, label: 'Terrible', emoji: '😠', activeClass: 'bg-destructive/10 text-destructive border-destructive/50' },
+    { value: 2, label: 'Bad', emoji: '☹️', activeClass: 'bg-secondary/10 text-secondary border-secondary/50' },
+    { value: 3, label: 'Okay', emoji: '😐', activeClass: 'bg-muted text-muted-foreground border-border' },
+    { value: 4, label: 'Good', emoji: '😊', activeClass: 'bg-primary/10 text-primary border-primary/50' },
+    { value: 5, label: 'Great', emoji: '🤩', activeClass: 'bg-primary/20 text-primary border-primary font-black' },
 ] as const;
 
 const TagRow = memo(({ tag, onEdit, onDelete }: { tag: Tag, onEdit: (t: Tag) => void, onDelete: (id: number) => void }) => {
@@ -45,32 +46,32 @@ const TagRow = memo(({ tag, onEdit, onDelete }: { tag: Tag, onEdit: (t: Tag) => 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="group hover:bg-slate-50/50 transition-colors border-b last:border-0"
+            className="group border-b border-border transition-colors hover:bg-muted/30 last:border-0"
         >
             <TableCell className="py-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-slate-100 text-slate-500 group-hover:bg-white group-hover:shadow-sm transition-all">
+                    <div className="p-2 rounded-lg bg-muted text-muted-foreground group-hover:bg-card group-hover:shadow-sm transition-all border border-transparent group-hover:border-border">
                         <TagIcon className="w-4 h-4" />
                     </div>
-                    <span className="font-semibold text-slate-900">{tag.name}</span>
+                    <span className="font-semibold text-foreground">{tag.name}</span>
                 </div>
             </TableCell>
             <TableCell>
                 {level && (
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${level.activeColor}`}>
+                    <span className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-wider font-bold border ${level.activeClass}`}>
                         {level.emoji} {level.label}
                     </span>
                 )}
             </TableCell>
-            <TableCell className="text-slate-500 font-medium">
-                {tag.creator?.full_name || <span className="text-slate-300 italic">System</span>}
+            <TableCell className="text-muted-foreground font-medium text-sm">
+                {tag.creator?.full_name || <span className="text-muted/60 italic text-xs">System</span>}
             </TableCell>
             <TableCell className="text-right">
                 <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(tag)} className="h-8 w-8 text-blue-600 hover:bg-blue-50">
+                    <Button variant="ghost" size="icon" onClick={() => onEdit(tag)} className="h-8 w-8 text-primary hover:bg-primary/10">
                         <Edit className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onDelete(tag.id)} className="h-8 w-8 text-rose-600 hover:bg-rose-50">
+                    <Button variant="ghost" size="icon" onClick={() => onDelete(tag.id)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
                         <Trash2 className="w-4 h-4" />
                     </Button>
                 </div>
@@ -137,26 +138,26 @@ export default function TagsIndex({ tags }: Props) {
             <Head title="Feedback Tags" />
 
             <div className="mx-auto max-w-5xl p-6 lg:p-10 space-y-8">
-                <div className="flex justify-between items-end">
-                    <div>
-                        <h1 className="text-4xl font-black uppercase">Feedback Tags</h1>
-                        <p className="text-slate-500">Define rapid-response options for customer surveys.</p>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                    <div className="space-y-1">
+                        <h1 className="text-4xl font-black uppercase tracking-tight text-foreground">Feedback Tags</h1>
+                        <p className="text-muted-foreground font-medium italic">Define rapid-response options for customer surveys.</p>
                     </div>
-                    <Button onClick={handleOpenCreate} className="h-12 px-6 rounded-xl bg-slate-900 hover:bg-black">
+                    <Button onClick={handleOpenCreate} className="h-12 px-6 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-lg shadow-primary/20">
                         <Plus className="w-5 h-5 mr-2" />
                         Add Tag
                     </Button>
                 </div>
 
-                <Card className="rounded-3xl overflow-hidden shadow-sm border-slate-200">
+                <Card className="rounded-[2rem] overflow-hidden shadow-sm border-none bg-card text-card-foreground">
                     <CardContent className="p-0">
                         <Table>
-                            <TableHeader>
-                                <TableRow className="bg-slate-50/50">
-                                    <TableHead className="font-bold">Label</TableHead>
-                                    <TableHead className="font-bold">Rating Level</TableHead>
-                                    <TableHead className="font-bold">Source</TableHead>
-                                    <TableHead className="text-right font-bold">Actions</TableHead>
+                            <TableHeader className="bg-muted/50">
+                                <TableRow className="border-none">
+                                    <TableHead className="font-bold text-muted-foreground uppercase text-[11px] tracking-widest px-8">Label</TableHead>
+                                    <TableHead className="font-bold text-muted-foreground uppercase text-[11px] tracking-widest">Rating Level</TableHead>
+                                    <TableHead className="font-bold text-muted-foreground uppercase text-[11px] tracking-widest">Source</TableHead>
+                                    <TableHead className="text-right font-bold text-muted-foreground uppercase text-[11px] tracking-widest px-8">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -173,32 +174,32 @@ export default function TagsIndex({ tags }: Props) {
 
             {/* Form Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="sm:max-w-md rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                <DialogContent className="sm:max-w-md rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl bg-card text-card-foreground">
                     <form onSubmit={handleSubmit}>
-                        <div className="bg-slate-900 p-8 text-white">
-                            <DialogTitle className="text-2xl font-black uppercase">
-                                {editingTag ? 'Edit Tag' : 'New Tag'}
+                        <div className="bg-primary p-8 text-primary-foreground">
+                            <DialogTitle className="text-2xl font-black uppercase tracking-tight">
+                                {editingTag ? 'Modify Tag' : 'Initialize Tag'}
                             </DialogTitle>
-                            <DialogDescription className="text-slate-400">
-                                This tag will be grouped by its feedback rating.
+                            <DialogDescription className="text-primary-foreground/70">
+                                Tags help categorize feedback for deeper analytics.
                             </DialogDescription>
                         </div>
 
                         <div className="p-8 space-y-8">
                             <div className="space-y-2">
-                                <Label className="text-slate-600 text-xs font-bold uppercase tracking-widest">Tag Label</Label>
+                                <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em]">Tag Label</Label>
                                 <Input
                                     placeholder="e.g. Friendly Staff"
                                     value={data.name}
                                     onChange={e => setData('name', e.target.value)}
                                     required
-                                    className="h-12 rounded-xl border-slate-200 focus:ring-slate-900 text-lg"
+                                    className="h-12 rounded-xl border-none bg-muted focus-visible:ring-primary text-lg font-medium"
                                 />
-                                {errors.name && <p className="text-sm text-red-500 font-medium">{errors.name}</p>}
+                                {errors.name && <p className="text-xs font-bold text-destructive">{errors.name}</p>}
                             </div>
 
                             <div className="space-y-4">
-                                <Label className="text-slate-600 text-xs font-bold uppercase tracking-widest">Sentiment Level</Label>
+                                <Label className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em]">Sentiment Level</Label>
                                 <div className="grid grid-cols-5 gap-2">
                                     {LEVELS.map((level) => {
                                         const isActive = data.level === level.value;
@@ -208,31 +209,31 @@ export default function TagsIndex({ tags }: Props) {
                                                 type="button"
                                                 onClick={() => setData('level', level.value)}
                                                 className={`
-                                                    flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all
+                                                    flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border-2 transition-all
                                                     ${isActive 
-                                                        ? `${level.activeColor} border-current scale-105 shadow-md` 
-                                                        : 'border-slate-100 hover:border-slate-200 text-slate-400 grayscale opacity-60 hover:grayscale-0 hover:opacity-100'
+                                                        ? `${level.activeClass} border-current scale-105 shadow-md` 
+                                                        : 'border-muted hover:border-border text-muted-foreground/40 grayscale opacity-60 hover:grayscale-0 hover:opacity-100'
                                                     }
                                                 `}
                                             >
-                                                <span className="text-3xl leading-none">{level.emoji}</span>
-                                                <span className="text-[10px] font-black uppercase tracking-tight leading-none text-center">
+                                                <span className="text-2xl leading-none">{level.emoji}</span>
+                                                <span className="text-[9px] font-black uppercase tracking-tighter leading-none text-center">
                                                     {level.label}
                                                 </span>
                                             </button>
                                         );
                                     })}
                                 </div>
-                                {errors.level && <p className="text-sm text-red-500 font-medium">{errors.level}</p>}
+                                {errors.level && <p className="text-xs font-bold text-destructive">{errors.level}</p>}
                             </div>
                         </div>
 
-                        <DialogFooter className="p-8 bg-slate-50 border-t flex gap-2">
-                            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="rounded-xl h-12">
+                        <DialogFooter className="p-8 bg-muted/50 border-t border-border flex flex-row items-center justify-between">
+                            <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="font-bold uppercase text-[10px] tracking-widest text-muted-foreground hover:bg-transparent">
                                 Cancel
                             </Button>
-                            <Button type="submit" disabled={processing} className="rounded-xl h-12 px-8 bg-slate-900 hover:bg-black font-bold">
-                                {processing ? 'Saving...' : editingTag ? 'Update Tag' : 'Create Tag'}
+                            <Button type="submit" disabled={processing} className="h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black shadow-lg shadow-primary/20">
+                                {processing ? 'SAVING...' : editingTag ? 'UPDATE TAG' : 'CREATE TAG'}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -241,22 +242,22 @@ export default function TagsIndex({ tags }: Props) {
 
             {/* Delete Confirmation */}
             <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-                <DialogContent className="sm:max-w-sm rounded-3xl p-8">
+                <DialogContent className="sm:max-w-sm rounded-[2rem] p-8 bg-card border-none shadow-2xl">
                     <div className="flex flex-col items-center text-center space-y-4">
-                        <div className="p-4 bg-rose-50 text-rose-600 rounded-full">
+                        <div className="p-4 bg-destructive/10 text-destructive rounded-full">
                             <AlertCircle className="w-10 h-10" />
                         </div>
                         <DialogHeader>
-                            <DialogTitle className="text-2xl font-black uppercase text-slate-900">Delete Tag?</DialogTitle>
-                            <DialogDescription className="text-slate-500 text-base">
+                            <DialogTitle className="text-2xl font-black uppercase tracking-tight text-foreground">Delete Tag?</DialogTitle>
+                            <DialogDescription className="text-muted-foreground text-sm">
                                 This will permanently remove this tag. Survey results already using this tag will be affected.
                             </DialogDescription>
                         </DialogHeader>
                         <div className="flex w-full gap-3 mt-6">
-                            <Button variant="outline" className="flex-1 h-12 rounded-xl font-bold" onClick={() => setIsDeleteModalOpen(false)}>
+                            <Button variant="ghost" className="flex-1 h-12 rounded-xl font-bold uppercase text-xs text-muted-foreground" onClick={() => setIsDeleteModalOpen(false)}>
                                 Keep it
                             </Button>
-                            <Button variant="destructive" className="flex-1 h-12 rounded-xl bg-rose-600 font-bold" onClick={confirmDelete} disabled={processing}>
+                            <Button className="flex-1 h-12 rounded-xl bg-destructive hover:bg-destructive/90 text-destructive-foreground font-bold uppercase text-xs shadow-lg shadow-destructive/20" onClick={confirmDelete} disabled={processing}>
                                 Yes, Delete
                             </Button>
                         </div>

@@ -136,8 +136,15 @@ class TerminalController extends Controller
     //     return redirect()->route('client.feedback', $counter->id);
     // }
 
-    public function feedback(Counter $counter)
+    public function feedback(Request $request, Counter $counter)
     {
+        $terminalToken = $request->cookie('terminal_token');
+
+        if (!$terminalToken || $counter->device_uuid !== $terminalToken) {
+            return redirect()->route('home')
+                ->with('error', 'This terminal is currently locked by another device.')->withErrors(['counter_id' => 'This terminal is currently locked by another device.']);
+        }
+
         $counter->load('branch');
 
         $tags = Tag::where('category', '!=', 'neutral')->get();
@@ -148,8 +155,6 @@ class TerminalController extends Controller
             ->whereNull('end_time')
             ->latest('start_time')
             ->first();
-
-
 
         return Inertia::render('client/Feedback', [
             'counter' => $counter,
