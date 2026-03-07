@@ -2,13 +2,27 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model; 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class Counter extends Model
 {
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (!$model->uuid) {
+                $model->uuid = Str::uuid();
+            }
+        });
+    }
+
     protected $fillable = [
         'branch_id',
+        'uuid',
         'name',
         'is_active',
         'fixed_qr_token',

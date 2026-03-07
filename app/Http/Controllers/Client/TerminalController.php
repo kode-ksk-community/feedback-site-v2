@@ -100,7 +100,7 @@ class TerminalController extends Controller
         ]);
 
         // 5. Attach Secure Cookie (Expires in 5 years - "Permanent" Hardware ID)
-        return redirect()->route('client.feedback', $counter->id);
+        return redirect()->route('client.feedback', $counter->uuid);
     }
 
     // public function verifyPin(Request $request)
@@ -136,9 +136,11 @@ class TerminalController extends Controller
     //     return redirect()->route('client.feedback', $counter->id);
     // }
 
-    public function feedback(Request $request, Counter $counter)
+    public function feedback(Request $request,  $counter)
     {
         $terminalToken = $request->cookie('terminal_token');
+
+        $counter = Counter::where('uuid' , $counter)->firstOrFail();
 
         if (!$terminalToken || $counter->device_uuid !== $terminalToken) {
             return redirect()->route('home')

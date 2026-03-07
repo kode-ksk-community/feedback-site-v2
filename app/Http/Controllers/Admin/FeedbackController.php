@@ -32,7 +32,7 @@ class FeedbackController extends Controller
      */
     public function store(Request $request, Counter $counter)
     {
-        
+
         $request->validate([
             'rating'      => 'required|integer|min:1|max:5',
             'comment'     => 'nullable|string|max:1000',
