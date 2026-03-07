@@ -10,6 +10,7 @@ class Feedback extends Model
         'branch_id',
         'counter_id',
         'user_id',
+        'servicer_id',
         'rating',
         'comment',
     ];
@@ -35,6 +36,7 @@ class Feedback extends Model
 
     public function tags()
     {
-        return $this->hasMany(FeedbackTag::class);
+        // return $this->hasMany(FeedbackTag::class);
+        return $this->belongsToMany(Tag::class, 'feedback_tags', 'feedback_id', 'tag_id');
     }
 }

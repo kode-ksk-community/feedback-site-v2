@@ -46,12 +46,17 @@ import {
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { route } from 'ziggy-js';
 import AppLogoIcon from './app-logo-icon';
+import { useSettings } from '@/hooks/system/use-settings';
 
 export function AppSidebar() {
     const { auth } = usePage().props as any;
     const { state } = useSidebar();
     const [open, setOpen] = useState(false);
     const can = auth?.can ?? {};
+
+    const { name, logo, color } = useSettings();
+
+    console.log('System Settings:', { name, logo, color });
 
     // Performance: Memoized active check to prevent recalculation on every scroll/hover
     const isRouteActive = useCallback((href: string) => {
@@ -80,7 +85,7 @@ export function AppSidebar() {
             },
             {
                 label: 'Administration',
-                // can: 'access-admin-page', // Security layer: only renders if user has permission
+                can: 'access-admin-page', // Security layer: only renders if user has permission
                 items: [
                     {
                         title: 'Branches',
@@ -102,9 +107,15 @@ export function AppSidebar() {
                         href: route('admin.users.index'),
                         icon: User,
                     },
+                ],
+            },
+            {
+                label: 'Super Administration',
+                can: 'access-superadmin-page', // Security layer: only renders if user has permission
+                items: [
                     {
                         title: 'System Settings',
-                        href: route('admin.settings.index'),
+                        href: route('superadmin.settings.index'),
                         icon: Settings,
                     },
                 ],
@@ -143,6 +154,8 @@ export function AppSidebar() {
         return () => document.removeEventListener('keydown', down);
     }, []);
 
+
+
     return (
         <>
             <Sidebar
@@ -162,15 +175,16 @@ export function AppSidebar() {
                                     className="flex items-center gap-3"
                                 >
                                     <div className="flex aspect-square size-5 items-center justify-center">
-                                        <AppLogoIcon className="size-4 bg-primary text-primary-foreground shadow-lg ring-4 shadow-primary/30 ring-primary/10" />
+                                        {/* <AppLogoIcon className="size-4 bg-primary text-primary-foreground shadow-lg ring-4 shadow-primary/30 ring-primary/10" /> */}
+                                        {logo && <img src={logo} alt={name} />}
                                     </div>
                                     <div className="flex flex-col overflow-hidden text-left">
                                         <span className="truncate text-sm font-black tracking-tight text-foreground uppercase">
-                                            BIU System
+                                            {name}
                                         </span>
-                                        <span className="truncate text-[10px] font-bold tracking-[0.15em] text-primary/70 uppercase">
+                                        {/* <span className="truncate text-[10px] font-bold tracking-[0.15em] text-primary/70 uppercase">
                                             Faculty of IT
-                                        </span>
+                                        </span> */}
                                     </div>
                                 </Link>
                             </SidebarMenuButton>

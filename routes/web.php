@@ -20,8 +20,8 @@ use function Termwind\terminal;
 
 
 
-Route::get('/service/start/{counter_id}/{token}', [ServiceController::class, 'start'])
-    ->name('service.start');
+// Route::get('/service/start/{counter_id}/{token}', [ServiceController::class, 'start'])
+//     ->name('service.start');
 
 Route::get('/', [TerminalController::class, 'activate'])->name('home');
 // Route::get('/activate', [TerminalController::class, 'activate'])->name('client.activate');
@@ -53,14 +53,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->as('admin.')
         ->middleware([
             'auth',
+            'can:access-admin-page'
         ])
         ->group(function () {
             // Route::resource('dashboard', DashboardController::class)->names('dashboard');
             Route::resource('branches', BranchController::class)->names('branches');
             Route::resource('counters', CounterController::class)->names('counters');
             Route::resource('tags', TagController::class)->names('tags');
-            Route::resource('settings', SystemSettingController::class)->names('settings');
             Route::resource('users', UserController::class)->names('users');
+        });
+
+    Route::prefix('superadmin')
+        ->as('superadmin.')
+        ->middleware([
+            'auth',
+            'can:access-superadmin-page'
+        ])
+        ->group(function () {
+            Route::resource('settings', SystemSettingController::class)->names('settings');
         });
 });
 

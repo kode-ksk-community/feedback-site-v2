@@ -40,10 +40,23 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+                'can' => [
+                    'access-admin-page' => $request->user()?->can('access-admin-page'),
+                    'access-superadmin-page' => $request->user()?->can('access-superadmin-page'),
+                    'access-manager-page' => $request->user()?->can('access-manager-page'),
+                    'access-servicer-page' => $request->user()?->can('access-servicer-page'),
+                ],
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error'   => $request->session()->get('error'),
+            ],
+
+            'system' => [
+                'app_name' => config('app.name'),
+                'logo' => config('settings.logo'),
+                'primary_color' => config('settings.primary_color'),
+                // Only share what the frontend actually needs
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

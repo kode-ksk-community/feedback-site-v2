@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->integer('counter_id')->nullable();
             $table->integer('user_id')->nullable();
-            // $table->integer('servicer_assignment_id')->nullable();
+            $table->integer('servicer_id')->nullable();
             $table->tinyInteger('rating')->unsigned();
             $table->text('comment')->nullable();
             $table->timestamps();

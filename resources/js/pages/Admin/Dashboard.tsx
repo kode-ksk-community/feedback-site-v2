@@ -101,7 +101,7 @@ export default function Dashboard({
                                 disabled={isLoading}
                                 value={filters.date_start || ''}
                                 onChange={(e) => updateFilter('date_start', e.target.value)}
-                                className="h-9 w-32 border-none bg-transparent text-xs focus-visible:ring-ring"
+                                className="h-9 border-none bg-transparent text-xs focus-visible:ring-ring"
                             />
                             <span className="text-xs text-muted-foreground">→</span>
                             <Input
@@ -109,7 +109,7 @@ export default function Dashboard({
                                 disabled={isLoading}
                                 value={filters.date_end || ''}
                                 onChange={(e) => updateFilter('date_end', e.target.value)}
-                                className="h-9 w-32 border-none bg-transparent text-xs focus-visible:ring-ring"
+                                className="h-9 border-none bg-transparent text-xs focus-visible:ring-ring"
                             />
                         </div>
 

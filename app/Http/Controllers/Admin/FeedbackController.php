@@ -55,7 +55,8 @@ class FeedbackController extends Controller
         // Create feedback
         $feedback = Feedback::create([
             'counter_id'             => $counter->id,
-            'servicer_id'            => $assignment->servicer_id,
+            'user_id'                => $assignment->user_id, // Optional: If you have user authentication, set this to the authenticated user's ID
+            'servicer_id'            => $assignment->user_id,
             'servicer_assignment_id' => $assignment->id,
             'rating'                 => $request->rating,
             'comment'                => $request->comment,

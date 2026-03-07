@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\SystemSetting;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class SystemSettingController extends Controller
@@ -28,6 +29,10 @@ class SystemSettingController extends Controller
 
     public function update(Request $request)
     {
+        $settings = SystemSetting::firstOrCreate(['id' => 1]);
+
+        // dd($request->all());
+
         $validated = $request->validate([
             'app_name'               => 'required|string|max:100',
             'primary_color'          => 'required|string|size:7',
@@ -35,25 +40,39 @@ class SystemSettingController extends Controller
             'shift_morning_end'      => 'required|date_format:H:i:s',
             'shift_afternoon_start'  => 'required|date_format:H:i:s',
             'shift_afternoon_end'    => 'required|date_format:H:i:s',
-            'logo'                   => 'nullable|image|max:2048', // 2MB
+            'logo'                   => 'nullable|image|mimes:jpeg,png,jpg,svg|max:2048',
         ]);
 
-        $settings = SystemSetting::firstOrCreate(['id' => 1]);
-
+        // Secure & Fast File Handling
         if ($request->hasFile('logo')) {
-            // Delete old logo if exists
-            if ($settings->logo_url && Storage::disk('public')->exists($settings->logo_url)) {
-                Storage::disk('public')->delete($settings->logo_url);
-            }
+            // 1. Store new file first (Fail-fast: if storage fails, DB doesn't update)
             $path = $request->file('logo')->store('logos', 'public');
-            $validated['logo_url'] = $path;
-        } else {
-            $validated['logo_url'] = $settings->logo_url;
+
+            // dd($path);
+
+            // // 2. Queue the old file for deletion to reduce request latency
+            // if ($settings->logo) {
+            //     // Using a simple background check/delete if your setup supports queues, 
+            //     // otherwise, direct delete is fine but slightly slower.
+            //     Storage::disk('public')->delete($settings->logo);
+            // }
+
+            $validated['logo'] = $path;
         }
 
+        // Performance: Remove the 'logo' file object from the array 
+        // to prevent unwanted overhead during the update process.
+        // unset($validated['logo']);
+
+        // Use a Transaction if you have multiple related tables, 
+        // but for a single row, update() is efficient enough.
+
+        // dd($validated);
         $settings->update($validated);
 
-        return redirect()->route('admin.settings.edit')
-            ->with('toast', ['type' => 'success', 'message' => 'System settings updated successfully!']);
+        Cache::forget('system_settings');
+
+        return redirect()->route('admin.settings.index')
+            ->with('toast', ['type' => 'success', 'message' => 'System settings updated!']);
     }
 }
