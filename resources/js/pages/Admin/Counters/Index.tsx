@@ -169,7 +169,7 @@ export default function CountersIndex({ counters, branches }: Props) {
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input 
-                                placeholder="Filter nodes..." 
+                                placeholder="Filter counters..." 
                                 className="pl-10 h-12 w-[280px] bg-card border-none rounded-xl shadow-sm focus-visible:ring-ring"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -228,7 +228,7 @@ export default function CountersIndex({ counters, branches }: Props) {
                     }}>
                         <div className="bg-primary p-8 text-primary-foreground">
                             <DialogTitle className="text-2xl font-black uppercase tracking-tight">
-                                {editingCounter ? 'Modify Node' : 'Initialize Node'}
+                                {editingCounter ? 'Modify Counter' : 'Initialize Counter'}
                             </DialogTitle>
                             <DialogDescription className="text-primary-foreground/70">Configure terminal identity and security protocols.</DialogDescription>
                         </div>

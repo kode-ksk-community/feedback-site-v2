@@ -249,8 +249,8 @@ export default function BranchesIndex({ branches }: Props) {
                         <div className="bg-primary p-8 text-primary-foreground">
                             <DialogTitle className="text-2xl font-black">
                                 {editingBranch
-                                    ? 'Update Node'
-                                    : 'Register New Node'}
+                                    ? 'Update Branch'
+                                    : 'Register New Branch'}
                             </DialogTitle>
                             <DialogDescription className="text-primary-foreground/70">
                                 Enter the operational details for this location.
