@@ -115,7 +115,7 @@ export default function BranchesIndex({ branches }: Props) {
                 {/* === HEADER SECTION === */}
                 <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                     <div>
-                        <h1 className="text-4xl font-black tracking-tight text-foreground">
+                        <h1 className="text-4xl font-black tracking-tight text-foreground uppercase">
                             Branches
                         </h1>
                         <p className="mt-1 text-muted-foreground italic">
