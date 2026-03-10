@@ -72,7 +72,7 @@ class SystemSettingController extends Controller
 
         Cache::forget('system_settings');
 
-        return redirect()->route('admin.settings.index')
+        return redirect()->route('superadmin.settings.index')
             ->with('toast', ['type' => 'success', 'message' => 'System settings updated!']);
     }
 }
