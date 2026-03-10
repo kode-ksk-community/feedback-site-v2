@@ -106,7 +106,7 @@ export default function SystemSettings({ settings }: { settings: Settings }) {
     const handleSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         
-        post(route('admin.settings.update', { setting: 1 }), {
+        post(route('superadmin.settings.update', { setting: 1 }), {
             preserveScroll: true,
             forceFormData: true,
             onSuccess: () => {
