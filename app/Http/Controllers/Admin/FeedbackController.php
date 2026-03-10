@@ -30,53 +30,99 @@ class FeedbackController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, Counter $counter)
-    {
 
-        $request->validate([
+    public function store(Request $request, $uuid)
+    {
+        // 1. Explicitly find by UUID to match the URL structure and prevent 404s
+        $counter = \App\Models\Counter::where('uuid', $uuid)->firstOrFail();
+
+        // 2. Fast Validation
+        $data = $request->validate([
             'rating'      => 'required|integer|min:1|max:5',
             'comment'     => 'nullable|string|max:1000',
             'tagIds'      => 'nullable|array',
             'tagIds.*'    => 'integer|exists:tags,id',
         ]);
 
-        // Get active assignment
-        $assignment = CounterUser::where('counter_id', $counter->id)
+        // 3. Optimize memory: Select only needed columns for the assignment check
+        $assignment = \App\Models\CounterUser::select('id', 'user_id')
+            ->where('counter_id', $counter->id)
             ->whereNull('end_time')
             ->latest('start_time')
             ->first();
 
         if (!$assignment) {
-            return back()->withErrors([
-                'error' => 'No active servicer at this counter.'
+            return back()->withErrors(['error' => 'No active servicer at this counter.']);
+        }
+
+        // 4. Secure & Fast: Database Transaction with Bulk Insert
+        return \DB::transaction(function () use ($request, $counter, $assignment, $data) {
+            $feedback = \App\Models\Feedback::create([
+                'counter_id'             => $counter->id,
+                'servicer_id'            => $assignment->user_id, // Setting both as per your original logic
+                'servicer_assignment_id' => $assignment->id,
+                'rating'                 => $data['rating'],
+                'comment'                => $data['comment'],
+                'ip_address'             => $request->ip(),
+                'user_agent'             => $request->userAgent(),
             ]);
-        }
 
-        // Create feedback
-        $feedback = Feedback::create([
-            'counter_id'             => $counter->id,
-            'user_id'                => $assignment->user_id, // Optional: If you have user authentication, set this to the authenticated user's ID
-            'servicer_id'            => $assignment->user_id,
-            'servicer_assignment_id' => $assignment->id,
-            'rating'                 => $request->rating,
-            'comment'                => $request->comment,
-            'ip_address'             => $request->ip(),
-            'user_agent'             => $request->userAgent(),
-        ]);
-
-        // Attach tags (clean way)
-        if ($request->filled('tagIds')) {
-            // Log::info('Attaching tags to feedback', ['feedback_id' => $feedback->id, 'tag_ids' => $request->tagIds]);
-            foreach ($request->tagIds as $tagId) {
-                FeedbackTag::create([
-                    'feedback_id' => $feedback->id,
-                    'tag_id' => $tagId,
-                ]);
+            // High-Speed Bulk Attach (Replaces the slow foreach loop)
+            if (!empty($data['tagIds'])) {
+                $feedback->tags()->attach($data['tagIds']);
             }
-        }
 
-        return back()->with('success', 'Thank you for your feedback!');
+            return back()->with('success', 'Thank you for your feedback!');
+        });
     }
+    
+    // public function store(Request $request, Counter $counter)
+    // {
+
+    //     $request->validate([
+    //         'rating'      => 'required|integer|min:1|max:5',
+    //         'comment'     => 'nullable|string|max:1000',
+    //         'tagIds'      => 'nullable|array',
+    //         'tagIds.*'    => 'integer|exists:tags,id',
+    //     ]);
+
+    //     // Get active assignment
+    //     $assignment = CounterUser::where('counter_id', $counter->id)
+    //         ->whereNull('end_time')
+    //         ->latest('start_time')
+    //         ->first();
+
+    //     if (!$assignment) {
+    //         return back()->withErrors([
+    //             'error' => 'No active servicer at this counter.'
+    //         ]);
+    //     }
+
+    //     // Create feedback
+    //     $feedback = Feedback::create([
+    //         'counter_id'             => $counter->id,
+    //         'user_id'                => $assignment->user_id, // Optional: If you have user authentication, set this to the authenticated user's ID
+    //         'servicer_id'            => $assignment->user_id,
+    //         'servicer_assignment_id' => $assignment->id,
+    //         'rating'                 => $request->rating,
+    //         'comment'                => $request->comment,
+    //         'ip_address'             => $request->ip(),
+    //         'user_agent'             => $request->userAgent(),
+    //     ]);
+
+    //     // Attach tags (clean way)
+    //     if ($request->filled('tagIds')) {
+    //         // Log::info('Attaching tags to feedback', ['feedback_id' => $feedback->id, 'tag_ids' => $request->tagIds]);
+    //         foreach ($request->tagIds as $tagId) {
+    //             FeedbackTag::create([
+    //                 'feedback_id' => $feedback->id,
+    //                 'tag_id' => $tagId,
+    //             ]);
+    //         }
+    //     }
+
+    //     return back()->with('success', 'Thank you for your feedback!');
+    // }
 
     /**
      * Display the specified resource.

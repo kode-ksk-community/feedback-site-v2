@@ -4,7 +4,6 @@ import {
     Send,
     UserCircle2,
     Loader2,
-    Sparkles,
     CheckCircle2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,8 +16,9 @@ import FlashMessage from '@/components/notifications/FlashMessage';
 import { Toaster as HotToast } from 'react-hot-toast';
 import { route } from 'ziggy-js';
 
+// Added uuid to Props for secure routing
 interface Props {
-    counter: { id: number; name: string };
+    counter: { id: number; name: string; uuid: string }; 
     tags: { id: number; name: string; level: number }[];
     fixed_qr_token: string;
     currentServicer: any | null;
@@ -64,7 +64,7 @@ const SuccessOverlay = ({ show }: { show: boolean }) => (
 );
 
 export default function Feedback({ counter, tags, fixed_qr_token, currentServicer: initialServicer }: Props) {
-    const { props } = usePage();
+    const { props } = usePage() as any;
     const [currentServicer, setCurrentServicer] = useState<any>(initialServicer);
     const [showSuccess, setShowSuccess] = useState(false);
 
@@ -72,7 +72,6 @@ export default function Feedback({ counter, tags, fixed_qr_token, currentService
         rating: 0,
         comment: '',
         tagIds: [] as number[],
-        servicer_id: initialServicer?.id || null,
     });
 
     // 1. DYNAMIC TAG FILTERING
@@ -83,7 +82,7 @@ export default function Feedback({ counter, tags, fixed_qr_token, currentService
         setData('tagIds', []);
     }, [data.rating]);
 
-    // 2. OPTIMIZED POLLING (Only polls if NO servicer is present)
+    // 2. OPTIMIZED POLLING
     useEffect(() => {
         if (document.hidden || showSuccess || currentServicer) return;
 
@@ -95,7 +94,6 @@ export default function Feedback({ counter, tags, fixed_qr_token, currentService
                     const newServicer = page.props.currentServicer as any;
                     if (newServicer) {
                         setCurrentServicer(newServicer);
-                        setData('servicer_id', newServicer.id);
                     }
                 },
             });
@@ -104,24 +102,30 @@ export default function Feedback({ counter, tags, fixed_qr_token, currentService
         return () => clearInterval(interval);
     }, [currentServicer, showSuccess]);
 
-    // Handle Flash Success
+// 3. FIX: Handle Flash Success
     useEffect(() => {
         if (props.flash?.success) {
             setShowSuccess(true);
             const timer = setTimeout(() => {
                 setShowSuccess(false);
+                
+                // ❌ REMOVED: setCurrentServicer(null); 
+                // We keep the servicer active so the form is instantly ready for the next customer!
+                
                 router.reload({ only: ['flash'] });
             }, 3500);
             return () => clearTimeout(timer);
         }
-    }, [props.flash]);
+    }, [props.flash?.success]);
 
     const handleSubmit = () => {
-        post(`/feedback/${counter.id}`, {
+        // FIX: Route by UUID, not ID
+        post(route('feedback.store', { counter: counter.uuid }), {
             preserveScroll: true,
             onSuccess: () => {
                 reset();
-                setCurrentServicer(null); // Force back to QR view until next servicer is detected
+                // We deliberately DO NOT set currentServicer(null) here anymore. 
+                // The useEffect above handles it so the user can see the "Thank You" screen.
             },
         });
     };
