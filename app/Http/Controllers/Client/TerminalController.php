@@ -140,7 +140,7 @@ class TerminalController extends Controller
     {
         $terminalToken = $request->cookie('terminal_token');
 
-        $counter = Counter::where('uuid' , $counter)->firstOrFail();
+        $counter = Counter::where('uuid', $counter)->firstOrFail();
 
         if (!$terminalToken || $counter->device_uuid !== $terminalToken) {
             return redirect()->route('home')
@@ -165,4 +165,29 @@ class TerminalController extends Controller
             'currentServicer' => $activeAssignment ? $activeAssignment->user : null,
         ]);
     }
+
+    public function checkUser(Request $request)
+    {
+        // Return a simple boolean JSON response
+        return response()->json(CounterUser::where('id', $$request->id)->where('is_active', true)->exists());
+    }
+
+    // public function checkUser(Request $request)
+    // {
+    //     $terminalToken = $request->cookie('terminal_token');
+
+
+
+    //     if (!$terminalToken) {
+    //         return response()->json(['exists' => false]);
+    //     }
+
+    //     $counter = Counter::where('device_uuid', $terminalToken)->first();
+
+    //     if ($counter) {
+    //         return response()->json(['exists' => true, 'counter_id' => $counter->id]);
+    //     }
+
+    //     return response()->json(['exists' => false]);
+    // }
 }

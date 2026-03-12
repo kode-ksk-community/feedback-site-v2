@@ -11,12 +11,21 @@ use App\Models\Tag;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
-public function index(Request $request)
+    public function index(Request $request)
     {
+
+        if (Auth::user()->role === 'servicer') {
+            if ($counterUser = CounterUser::with('counter')->where('user_id', Auth::id())->where('is_active', true)->first()) {
+                // return redirect()->route('dashboard.index');
+                return Inertia::render('Servicer/Dashboard' , compact('counterUser'));
+            }
+        }
+
         // 1. Fast Date Range Handling using match()
         $start = match ($request->preset) {
             'daily'   => now()->startOfDay(),
@@ -37,10 +46,10 @@ public function index(Request $request)
             $table = $query->getModel()->getTable();
 
             $query->when($start, fn($q) => $q->where("$table.created_at", '>=', $start))
-                  ->when($end, fn($q) => $q->where("$table.created_at", '<=', $end))
-                  ->when($request->branch_id, fn($q) => $q->whereHas('counter', fn($c) => $c->where('branch_id', $request->branch_id)))
-                  ->when($request->counter_id, fn($q) => $q->where('counter_id', $request->counter_id))
-                  ->when($request->servicer_id, fn($q) => $q->where('user_id', $request->servicer_id));
+                ->when($end, fn($q) => $q->where("$table.created_at", '<=', $end))
+                ->when($request->branch_id, fn($q) => $q->whereHas('counter', fn($c) => $c->where('branch_id', $request->branch_id)))
+                ->when($request->counter_id, fn($q) => $q->where('counter_id', $request->counter_id))
+                ->when($request->servicer_id, fn($q) => $q->where('user_id', $request->servicer_id));
         };
 
         // 3. Base Query & Metrics
@@ -53,7 +62,7 @@ public function index(Request $request)
         //         'avgRating'       => round((float) $metrics->average, 1),
         //         'activeServicers' => CounterUser::whereNull('end_time')->where('is_active', true)->count(),
         //     ],
-            
+
         //     // Eager load only required columns
         //     'recentComments' => (clone $feedbackQuery)
         //         ->with('user:id,name')
@@ -83,7 +92,7 @@ public function index(Request $request)
         //     'servicers' => User::where('role', 'servicer')->get(['id', 'name']),
         //     'filters'   => $request->only(['date_start', 'date_end', 'preset', 'branch_id', 'counter_id', 'servicer_id']),
         // ]);
-    
+
 
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
@@ -91,7 +100,7 @@ public function index(Request $request)
                 'avgRating'       => round((float) $metrics->average, 1),
                 'activeServicers' => CounterUser::whereNull('end_time')->where('is_active', true)->count(),
             ],
-            
+
             // Eager load only required columns
             'recentComments' => (clone $feedbackQuery)
                 ->with('user:id,name')

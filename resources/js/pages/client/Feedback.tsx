@@ -16,9 +16,8 @@ import FlashMessage from '@/components/notifications/FlashMessage';
 import { Toaster as HotToast } from 'react-hot-toast';
 import { route } from 'ziggy-js';
 
-// Added uuid to Props for secure routing
 interface Props {
-    counter: { id: number; name: string; uuid: string }; 
+    counter: { id: number; name: string; uuid: string };
     tags: { id: number; name: string; level: number }[];
     fixed_qr_token: string;
     currentServicer: any | null;
@@ -63,9 +62,11 @@ const SuccessOverlay = ({ show }: { show: boolean }) => (
     </AnimatePresence>
 );
 
-export default function Feedback({ counter, tags, fixed_qr_token, currentServicer: initialServicer }: Props) {
+export default function Feedback({ counter, tags, fixed_qr_token }: Props) {
     const { props } = usePage() as any;
-    const [currentServicer, setCurrentServicer] = useState<any>(initialServicer);
+    
+    // SOURCE OF TRUTH: Direct from Inertia Props to prevent state loops
+    const currentServicer = props.currentServicer;
     const [showSuccess, setShowSuccess] = useState(false);
 
     const { data, setData, post, processing, reset } = useForm({
@@ -74,59 +75,73 @@ export default function Feedback({ counter, tags, fixed_qr_token, currentService
         tagIds: [] as number[],
     });
 
-    // 1. DYNAMIC TAG FILTERING
     const filteredTags = tags.filter((tag) => tag.level === data.rating);
 
-    // Reset tags when rating changes to prevent mismatched data
     useEffect(() => {
         setData('tagIds', []);
     }, [data.rating]);
 
-    // 2. OPTIMIZED POLLING
+    /**
+     * STABLE PERFORMANCE POLLING
+     * Uses only: ['currentServicer'] to minimize payload and latency.
+     */
     useEffect(() => {
-        if (document.hidden || showSuccess || currentServicer) return;
+        if (document.hidden || showSuccess) return;
 
-        const interval = setInterval(() => {
-            router.reload({
-                only: ['currentServicer'],
-                preserveState: true,
-                onSuccess: (page) => {
-                    const newServicer = page.props.currentServicer as any;
-                    if (newServicer) {
-                        setCurrentServicer(newServicer);
+        const interval = setInterval(async () => {
+            if (!currentServicer) {
+                // If no one is active, poll via Inertia to refresh the prop
+                router.reload({
+                    only: ['currentServicer'],
+                    preserveState: true,
+                    preserveScroll: true,
+                });
+            } else {
+                // If someone is active, check via fast native fetch
+                try {
+                    const response = await fetch(route('client.check-user', { id: currentServicer.id }), {
+                        method: 'GET',
+                        headers: { 
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'Cache-Control': 'no-cache'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const isActive = await response.json();
+                        // Only force a reload if the backend says they are no longer active
+                        if (isActive === false) {
+                            router.reload({ only: ['currentServicer'] });
+                            reset();
+                        }
                     }
-                },
-            });
+                } catch (e) {
+                    console.debug("Silent poll fail - likely network glitch.");
+                }
+            }
         }, 3000);
 
         return () => clearInterval(interval);
-    }, [currentServicer, showSuccess]);
+    }, [currentServicer?.id, showSuccess]);
 
-// 3. FIX: Handle Flash Success
+    // Handle Success Flash
     useEffect(() => {
         if (props.flash?.success) {
             setShowSuccess(true);
             const timer = setTimeout(() => {
                 setShowSuccess(false);
-                
-                // ❌ REMOVED: setCurrentServicer(null); 
-                // We keep the servicer active so the form is instantly ready for the next customer!
-                
-                router.reload({ only: ['flash'] });
+                router.reload({ only: ['flash'], preserveState: true });
             }, 3500);
             return () => clearTimeout(timer);
         }
     }, [props.flash?.success]);
 
     const handleSubmit = () => {
-        // FIX: Route by UUID, not ID
+        if (data.rating === 0) return;
         post(route('feedback.store', { counter: counter.uuid }), {
             preserveScroll: true,
-            onSuccess: () => {
-                reset();
-                // We deliberately DO NOT set currentServicer(null) here anymore. 
-                // The useEffect above handles it so the user can see the "Thank You" screen.
-            },
+            onSuccess: () => reset(),
         });
     };
 
@@ -137,6 +152,7 @@ export default function Feedback({ counter, tags, fixed_qr_token, currentService
         setData('tagIds', current);
     };
 
+    // --- SCREEN: WAITING (QR) ---
     if (!currentServicer) {
         return (
             <div className="flex min-h-screen flex-col items-center justify-center bg-background p-8 text-center">
@@ -167,20 +183,13 @@ export default function Feedback({ counter, tags, fixed_qr_token, currentService
         );
     }
 
+    // --- SCREEN: FEEDBACK ---
     return (
         <div className="relative flex min-h-screen items-center justify-center bg-background p-4 sm:p-6">
             <Head title="Customer Satisfaction" />
             <SuccessOverlay show={showSuccess} />
             <HotToast position="bottom-right" />
             <FlashMessage />
-
-            <Button
-                variant="ghost"
-                className="absolute top-6 left-6 text-muted-foreground hover:text-foreground rounded-full"
-                onClick={() => router.visit('/')}
-            >
-                Logout
-            </Button>
 
             <motion.div
                 initial={{ y: 20, opacity: 0 }}
@@ -200,7 +209,6 @@ export default function Feedback({ counter, tags, fixed_qr_token, currentService
                     </div>
                 </div>
 
-                {/* --- RATING SECTION --- */}
                 <div className="mb-12 pt-6 flex items-center justify-between gap-2 overflow-x-auto pb-4 no-scrollbar">
                     {EMOJI_RATINGS.map((item) => (
                         <motion.button
@@ -223,7 +231,6 @@ export default function Feedback({ counter, tags, fixed_qr_token, currentService
                     ))}
                 </div>
 
-                {/* --- DYNAMIC TAGS --- */}
                 <AnimatePresence mode="wait">
                     {data.rating > 0 && filteredTags.length > 0 && (
                         <motion.div
@@ -233,16 +240,14 @@ export default function Feedback({ counter, tags, fixed_qr_token, currentService
                             exit={{ opacity: 0, y: -10 }}
                             className="mb-10 space-y-6"
                         >
-                            <p className="text-center text-[10px] font-black tracking-[0.4em] text-muted-foreground uppercase opacity-50">
-                                What stood out?
-                            </p>
                             <div className="flex flex-wrap justify-center gap-3">
                                 {filteredTags.map((tag) => (
                                     <button
                                         key={tag.id}
+                                        type="button"
                                         onClick={() => toggleTag(tag.id)}
                                         className={cn(
-                                            'rounded-2xl border px-6 py-4 text-sm font-bold transition-all active:scale-95',
+                                            'rounded-2xl border px-6 py-4 text-sm font-bold transition-all',
                                             data.tagIds.includes(tag.id)
                                                 ? 'border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20'
                                                 : 'border-input bg-muted/50 text-muted-foreground hover:border-primary/50'
@@ -260,7 +265,7 @@ export default function Feedback({ counter, tags, fixed_qr_token, currentService
                     placeholder="Tell us more about your experience..."
                     value={data.comment}
                     onChange={(e) => setData('comment', e.target.value)}
-                    className="min-h-[140px] rounded-[2rem] border-input bg-muted/30 p-8 text-foreground placeholder:text-muted-foreground/50 focus-visible:ring-primary"
+                    className="min-h-[140px] rounded-[2rem] border-input bg-muted/30 p-8 text-foreground placeholder:text-muted-foreground/50 focus-visible:ring-primary shadow-inner"
                 />
 
                 <Button
@@ -268,7 +273,7 @@ export default function Feedback({ counter, tags, fixed_qr_token, currentService
                     disabled={processing || data.rating === 0}
                     className={cn(
                         'mt-10 h-24 w-full rounded-[2.5rem] text-2xl font-black uppercase tracking-widest transition-all shadow-2xl',
-                        data.rating > 0 ? 'bg-primary text-primary-foreground hover:scale-[1.02]' : 'bg-muted text-muted-foreground opacity-50'
+                        data.rating > 0 ? 'bg-primary text-primary-foreground hover:scale-[1.01]' : 'bg-muted text-muted-foreground opacity-50'
                     )}
                 >
                     {processing ? (

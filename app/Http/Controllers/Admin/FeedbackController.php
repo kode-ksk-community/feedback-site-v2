@@ -155,4 +155,18 @@ class FeedbackController extends Controller
     {
         //
     }
+
+    public function checkUserStatus(int $id)
+    {
+        // Performance: 'exists()' is significantly faster than 'find()' or 'first()'
+        // as it stops at the first record found and doesn't hydrate a model object.
+        $isActive = CounterUser::where('id', $id)
+            ->where('is_active', true) // Or your specific "active" logic
+            ->exists();
+
+        // Security: Set a short Cache-Control if you want to prevent proxy caching
+        // but for real-time status, we return a direct 200 OK.
+        return response()->json($isActive);
+    }
+    
 }

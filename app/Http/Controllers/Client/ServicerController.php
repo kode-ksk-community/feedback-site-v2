@@ -14,6 +14,13 @@ class ServicerController extends Controller
 {
     public function start(Request $request)
     {
+
+        if(Auth()){
+            if(CounterUser::where('user_id', Auth::id())->where('counter_id', $request->query('counter_id'))->where('is_active', true)->exists()){
+                return redirect()->route('dashboard.index');
+            }
+        }
+        
         $counterId = $request->query('counter_id');
         $token     = $request->query('token');
 
@@ -23,6 +30,8 @@ class ServicerController extends Controller
         if ($counter->fixed_qr_token !== $token) {
             abort(403, 'Invalid or expired QR code');
         }
+
+        
 
         return Inertia::render('Servicer/Login', [
             'counter'     => $counter->only(['id', 'name']),
@@ -89,5 +98,26 @@ class ServicerController extends Controller
     public function success()
     {
         return Inertia::render('Servicer/Success');
+    }
+
+    public function logout(Request $request)
+    {
+        $user = Auth::user();
+
+        // Find the active shift for the user
+        $activeShift = CounterUser::where('user_id', $user->id)
+            ->whereNull('end_time')
+            ->first();
+
+        if ($activeShift) {
+            $activeShift->update([
+                'end_time'  => now(),
+                'is_active' => false,
+            ]);
+        }
+
+        // Auth::logout();
+
+        return redirect()->route('home');
     }
 }
