@@ -123,4 +123,15 @@ class CounterController extends Controller
     //         // you can add qr_path column if you want
     //     ]);
     // }
+
+    public function destroy(Counter $counter)
+    {
+
+
+        $counter->delete();
+
+
+
+        return redirect()->back();
+    }
 }

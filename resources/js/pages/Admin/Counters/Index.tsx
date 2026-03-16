@@ -58,9 +58,6 @@ const CounterRow = memo(({ counter, onEdit, onDelete, onRegenerate, onExport }: 
                     <div className="flex gap-0.5">
                         {[1, 2, 3].map(i => <div key={i} className="w-1.5 h-1.5 rounded-full bg-border" />)}
                     </div>
-                    <Button variant="ghost" size="icon" onClick={() => onRegenerate(counter.id)} className="h-8 w-8 text-muted-foreground hover:text-primary">
-                        <RefreshCw className="h-3.5 w-3.5" />
-                    </Button>
                 </div>
             </TableCell>
             <TableCell className="text-center">
