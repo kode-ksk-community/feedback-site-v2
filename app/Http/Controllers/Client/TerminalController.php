@@ -10,6 +10,7 @@ use App\Models\ServicerAssignment;
 use App\Models\Tag;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Cookie;
@@ -18,6 +19,13 @@ class TerminalController extends Controller
 {
     public function activate(Request $request)
     {
+
+        if (Auth()) {
+            if (Auth::user()?->role === "servicer") {
+                return redirect()->route('dashboard.index');
+            }
+        }
+
         // 1. Efficient Data Fetching
         $branches = Branch::select(['id', 'name'])->get();
         $counters = Counter::select('id', 'name', 'branch_id', 'pin')

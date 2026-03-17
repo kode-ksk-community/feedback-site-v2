@@ -116,7 +116,7 @@ class ServicerController extends Controller
             ]);
         }
 
-        // Auth::logout();
+        Auth::logout();
 
         return redirect()->route('home');
     }

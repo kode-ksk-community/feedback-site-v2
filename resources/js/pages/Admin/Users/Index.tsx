@@ -61,6 +61,7 @@ interface UserType {
 interface Props {
     users: UserType[];
     filters: { search?: string; role?: string };
+    branches: any;
 }
 
 const ROLE_CONFIG = {
@@ -166,7 +167,7 @@ const UserRow = memo(
 );
 
 // --- Main Page Component ---
-export default function UserManagementIndex({ users, filters }: Props) {
+export default function UserManagementIndex({ users, filters, branches }: Props) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [viewingUser, setViewingUser] = useState<UserType | null>(null);
@@ -501,34 +502,57 @@ export default function UserManagementIndex({ users, filters }: Props) {
                                     </p>
                                 )}
                             </div>
-                            <div className="space-y-2">
-                                <Label className="ml-1 text-[10px] font-black tracking-widest text-muted-foreground uppercase">
-                                    Role Assignment
-                                </Label>
-                                <Select
-                                    value={data.role}
-                                    onValueChange={(v: any) =>
-                                        setData('role', v)
-                                    }
-                                >
-                                    <SelectTrigger className="h-12 rounded-xl border-none bg-muted font-semibold focus:ring-primary">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent className="rounded-xl border-border bg-popover shadow-xl">
-                                        <SelectItem value="servicer">
-                                            Servicer
-                                        </SelectItem>
-                                        <SelectItem value="manager">
-                                            Manager
-                                        </SelectItem>
-                                        <SelectItem value="admin">
-                                            Admin
-                                        </SelectItem>
-                                        <SelectItem value="superadmin">
-                                            Super Admin
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
+                            <div>
+
+                                <div className="space-y-2">
+                                    <Label className="ml-1 text-[10px] font-black tracking-widest text-muted-foreground uppercase">
+                                        Role Assignment
+                                    </Label>
+                                    <Select
+                                        value={data.role}
+                                        onValueChange={(v: any) =>
+                                            setData('role', v)
+                                        }
+                                    >
+                                        <SelectTrigger className="h-12 rounded-xl border-none bg-muted font-semibold focus:ring-primary">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl border-border bg-popover shadow-xl">
+                                            <SelectItem value="servicer">
+                                                Servicer
+                                            </SelectItem>
+                                            <SelectItem value="manager">
+                                                Manager
+                                            </SelectItem>
+                                            <SelectItem value="admin">
+                                                Admin
+                                            </SelectItem>
+                                            <SelectItem value="superadmin">
+                                                Super Admin
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="ml-1 text-[10px] font-black tracking-widest text-muted-foreground uppercase">
+                                        Branch
+                                    </Label>
+                                    <Select
+                                        value={String(data.branch_id)}
+                                        onValueChange={(v) => setData('branch_id', v)}
+                                    >
+                                        <SelectTrigger className="h-12 rounded-xl border-none bg-muted font-semibold focus:ring-primary">
+                                            <SelectValue placeholder="Select branch" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl border-border bg-popover shadow-xl">
+                                            {branches.map((b) => (
+                                                <SelectItem key={b.id} value={String(b.id)}>
+                                                    {b.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                         </div>
                         <DialogFooter className="flex flex-row items-center justify-between border-t border-border/50 bg-muted/30 p-8">
@@ -548,8 +572,8 @@ export default function UserManagementIndex({ users, filters }: Props) {
                                 {processing
                                     ? 'SAVING...'
                                     : editingUser
-                                      ? 'UPDATE USER'
-                                      : 'CREATE USER'}
+                                        ? 'UPDATE USER'
+                                        : 'CREATE USER'}
                             </Button>
                         </DialogFooter>
                     </form>

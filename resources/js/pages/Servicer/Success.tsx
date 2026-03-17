@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { ShieldCheck, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { route } from 'ziggy-js';
 
 export default function Success() {
     const [countdown, setCountdown] = useState(5);
 
+    // Countdown timer
     useEffect(() => {
         const timer = setInterval(() => {
             setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
@@ -15,13 +17,19 @@ export default function Success() {
         return () => clearInterval(timer);
     }, []);
 
+    // Redirect when countdown hits 0
+    useEffect(() => {
+        if (countdown === 0) {
+            router.visit(route('dashboard.index'));
+        }
+    }, [countdown]);
+
     return (
         <div className="relative min-h-screen bg-background flex items-center justify-center p-6 overflow-hidden transition-colors duration-500">
             <Head title="Access Granted" />
 
             {/* --- Dynamic Background Layers --- */}
             <div className="absolute inset-0 pointer-events-none">
-                {/* Adaptive Glow: Uses primary color at 20% opacity */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,_var(--primary)_0%,_transparent_70%)] opacity-20 dark:opacity-40" />
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 dark:opacity-30 mix-blend-overlay" />
             </div>
@@ -111,7 +119,9 @@ export default function Success() {
                         className="group flex items-center gap-2 mx-auto text-muted-foreground hover:text-foreground transition-all pt-4"
                     >
                         <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">Close Manually</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">
+                            Close Manually
+                        </span>
                     </button>
                 </motion.div>
             </motion.div>

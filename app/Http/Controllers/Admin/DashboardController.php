@@ -55,45 +55,6 @@ class DashboardController extends Controller
         // 3. Base Query & Metrics
         $feedbackQuery = Feedback::query()->tap($applyFilters);
         $metrics = (clone $feedbackQuery)->selectRaw('COUNT(id) as total, COALESCE(AVG(rating), 0) as average')->first();
-
-        // return response()->json([
-        //     'stats' => [
-        //         'totalFeedbacks'  => (int) $metrics->total,
-        //         'avgRating'       => round((float) $metrics->average, 1),
-        //         'activeServicers' => CounterUser::whereNull('end_time')->where('is_active', true)->count(),
-        //     ],
-
-        //     // Eager load only required columns
-        //     'recentComments' => (clone $feedbackQuery)
-        //         ->with('user:id,name')
-        //         ->whereNotNull('comment') // UX: Don't send empty comments to UI
-        //         ->latest()
-        //         ->limit(10)
-        //         ->get(['id', 'user_id', 'rating', 'comment', 'created_at']),
-
-        //     'recentTags' => Tag::select('tags.id', 'tags.name') // Fixed column pruning
-        //         ->whereHas('feedbacks', $applyFilters)
-        //         ->withCount(['feedbacks' => $applyFilters])
-        //         ->orderByDesc('feedbacks_count')
-        //         ->limit(10)
-        //         ->get(), 
-
-        //     'topServicers' => User::select('users.id', 'users.name') // Fixed column pruning
-        //         ->where('role', 'servicer')
-        //         ->withCount(['feedbacks' => $applyFilters])
-        //         ->withAvg(['feedbacks' => $applyFilters], 'rating')
-        //         ->orderByDesc('feedbacks_avg_rating')
-        //         ->limit(5)
-        //         ->get(), 
-
-        //     // Dropdown Data
-        //     'branches'  => Branch::all(['id', 'name']),
-        //     'counters'  => Counter::when($request->branch_id, fn($q) => $q->where('branch_id', $request->branch_id))->get(['id', 'name']),
-        //     'servicers' => User::where('role', 'servicer')->get(['id', 'name']),
-        //     'filters'   => $request->only(['date_start', 'date_end', 'preset', 'branch_id', 'counter_id', 'servicer_id']),
-        // ]);
-
-
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
                 'totalFeedbacks'  => (int) $metrics->total,
